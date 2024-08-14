@@ -1,35 +1,71 @@
-# cerdas-cermat-scoreboard
+# Cerdas Cermat Scoreboard
 
-This template should help get you started developing with Vue 3 in Vite.
+A no-nonsense scoreboard app built with Vue.js and Tailwind CSS. This allows you to manage a scoreboard with multiple teams, like for quizzes (Cerdas Cermat).
 
-## Recommended IDE Setup
+## Features
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- Add and Remove Teams: Users can add new teams or remove existing ones.
+- Dynamic Score Updates: Change scores using predefined values or change it to any value, even negative!
+- Optimized for large screen for shows with exciting animations!
 
-## Customize configuration
+## Installation
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+1. Clone the repository:
 
-## Project Setup
+   `git clone https://github.com/your-username/scoreboard-app.git`
 
-```sh
-npm install
-```
+2. Navigate to the project directory:
 
-### Compile and Hot-Reload for Development
+   `cd scoreboard-app`
 
-```sh
-npm run dev
-```
+3. Install dependencies:
 
-### Compile and Minify for Production
+   `npm install`
 
-```sh
-npm run build
-```
+4. Run the development server:
 
-### Lint with [ESLint](https://eslint.org/)
+   `npm run serve`
 
-```sh
-npm run lint
-```
+5. Open your browser and navigate to `http://localhost:5173` to see the app in action.
+
+## Usage
+
+- Add Team: Click on the "Add Team" button to add a new team.
+- Remove Team: Click the "X" button next to a team's name to remove it.
+- Scoring: Use the score buttons to add or subtract points from a team's score. Scores are dynamically updated and visually highlighted.
+- Setting: Click the "Setting" button to adjust global score values.
+
+### Template
+
+- Header Input: Displays a title input field.
+- Buttons: Includes buttons for toggling the settings panel and adding teams.
+- Collapsible Panel: Allows editing of global score values.
+- Team Panel: Displays a list of teams with their scores. The team panel adjusts its layout based on the number of teams.
+
+### Script
+
+- Data: Manages the list of teams and global score values.
+- Computed Properties: Dynamically adjusts the layout and score display based on the number of teams.
+- Methods:
+  - `addTeam()`: Adds a new team.
+  - `removeTeam(index)`: Removes a team at a given index.
+  - `changeScore(index, amount)`: Updates a team's score and applies visual feedback.
+  - `togglePanel()`: Toggles the visibility of the settings panel.
+
+## Contributing
+
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature/your-feature`).
+3. Make your changes.
+4. Commit your changes (`git commit -am 'Add new feature'`).
+5. Push to the branch (`git push origin feature/your-feature`).
+6. Create a new Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Vue.js - The progressive JavaScript framework used in this project.
+- Tailwind CSS - The utility-first CSS framework used for styling.
