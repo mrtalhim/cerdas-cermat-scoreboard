@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col items-center mx-auto text-center p-6 gap-2 h-screen">
+    <div class="flex flex-col items-center mx-auto text-center p-4 gap-2 h-screen">
         <input placeholder="Scoreboard" class="w-full font-bold text-4xl text-center text-pretty bg-transparent">
         <div class="flex flex-row gap-2 items-baseline m-2">
             <button @click="togglePanel" class="bg-gray-800 text-white px-4 py-2 rounded-lg">
@@ -15,18 +15,22 @@
                     <!-- Dynamic Score Buttons -->
                     <div class="flex flex-wrap gap-4 justify-center">
                         <input v-model.number="globalScores.score1" type="number"
-                            class="bg-green-500 text-xl text-white p-2 border rounded-lg" placeholder="Score Value" />
+                            class="bg-green-500 text-xl text-white text-center p-2 border rounded-lg"
+                            placeholder="Score Value" />
                         <input v-model.number="globalScores.score2" type="number"
-                            class="bg-blue-500 text-xl text-white p-2 border rounded-lg" placeholder="Score Value" />
+                            class="bg-blue-500 text-xl text-white text-center p-2 border rounded-lg"
+                            placeholder="Score Value" />
                         <input v-model.number="globalScores.score3" type="number"
-                            class="bg-yellow-500 text-xl text-white p-2 border rounded-lg" placeholder="Score Value" />
+                            class="bg-yellow-500 text-xl text-white text-center p-2 border rounded-lg"
+                            placeholder="Score Value" />
                     </div>
                 </div>
             </div>
         </transition>
 
         <!-- Team Panel -->
-        <transition-group name="fade" tag="div" mode="out-in" :class="['grid gap-4 w-full flex-1 p-8', teamGridClass]">
+        <transition-group name="fade" tag="div" mode="out-in"
+            :class="['grid gap-4 w-full h-4/6 flex-1 px-8 pb-8', teamGridClass]">
             <div v-for="(team, index) in teams" :key="team.id" :class="[
                 'flex flex-col p-4 gap-2 rounded-lg shadow transition-all duration-300',
                 team.lastChange > 0 ? 'bg-green-500 scale-110' : team.lastChange < 0 ? 'bg-red-500 scale-90' : 'bg-gray-100'
@@ -45,7 +49,7 @@
                         </div>
                     </transition>
 
-                    <div class="flex flex-wrap justify-center gap-2">
+                    <div class="flex flex-col justify-center gap-2">
                         <button @click="changeScore(index, globalScores.score1)"
                             class="bg-green-500 text-white font-bold px-4 py-2 rounded-lg">{{ globalScores.score1 >= 0 ?
                                 '+' : ''
@@ -93,9 +97,8 @@ export default {
         },
         scoreClass() {
             const teamCount = this.teams.length;
-            if (teamCount <= 2) return 'text-9xl';
-            if (teamCount <= 4) return 'text-7xl';
-            return 'text-5xl';
+            if (teamCount <= 6) return 'text-8xl';
+            return 'text-6xl';
         }
     },
     methods: {
