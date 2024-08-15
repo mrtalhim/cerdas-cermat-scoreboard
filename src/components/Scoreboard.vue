@@ -1,11 +1,24 @@
 <template>
     <div class="flex flex-col items-center mx-auto text-center p-4 gap-2 h-screen">
         <input placeholder="Scoreboard" class="w-full font-bold text-4xl text-center text-pretty bg-transparent">
-        <div class="flex flex-row gap-2 items-baseline m-2">
+        <div class="flex flex-row gap-2 items-center m-2">
             <button @click="togglePanel" class="bg-gray-800 text-white px-4 py-2 rounded-lg">
                 {{ isPanelOpen ? 'Hide' : 'Setting' }}
             </button>
             <button @click="addTeam" class="bg-green-600 text-white px-4 py-2 rounded-lg">Add Team</button>
+            <div :class="['flex flex-row gap-2 text-4xl font-bold transition-all duration-500', countdownClass]">
+                <input v-if="!isCountingDown" v-model.number="minutes" type="number" min="0"
+                    class="w-20 py-1 text-center border rounded-lg text-black text-xl" />
+                <input v-if="!isCountingDown" v-model.number="seconds" type="number" min="0"
+                    class="w-20 py-1 text-center border rounded-lg text-black text-xl" />
+                <div v-else>
+                    {{ formattedTime }}
+                </div>
+            </div>
+            <button v-if="!isCountingDown" @click="startCountdown"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg">Start</button>
+            <button v-if="isCountingDown" @click="resetCountdown"
+                class="bg-red-600 text-white px-4 py-2 rounded-lg">Reset</button>
         </div>
         <!-- Collapsible Panel -->
         <transition name="fade">
@@ -85,9 +98,19 @@ export default {
                 score3: 50
             },
             isPanelOpen: true,
+            minutes: 0,
+            seconds: 0,
+            isCountingDown: false,
+            countdown: null,
+            countdownClass: ''
         };
     },
     computed: {
+        formattedTime() {
+            const min = String(this.minutes).padStart(2, '0');
+            const sec = String(this.seconds).padStart(2, '0');
+            return `${min}:${sec}`;
+        },
         teamGridClass() {
             const teamCount = this.teams.length;
             if (teamCount <= 2) return 'grid-cols-1';
@@ -118,6 +141,36 @@ export default {
         togglePanel() {
             this.isPanelOpen = !this.isPanelOpen;  // Toggle panel visibility
         },
+        startCountdown() {
+            if (this.minutes === 0 && this.seconds === 0) {
+                return;
+            }
+            this.isCountingDown = true;
+            this.countdownClass = 'bounce-enter-active';
+
+            this.countdown = setInterval(() => {
+                if (this.seconds > 0) {
+                    this.seconds--;
+                } else if (this.minutes > 0) {
+                    this.minutes--;
+                    this.seconds = 59;
+                } else {
+                    clearInterval(this.countdown);
+                    this.isCountingDown = false;
+                    this.countdownClass = 'shake-enter-active';
+                    setTimeout(() => {
+                        this.countdownClass = '';
+                    }, 1000);
+                }
+            }, 1000);
+        },
+        resetCountdown() {
+            clearInterval(this.countdown);
+            this.isCountingDown = false;
+            this.countdownClass = '';
+            this.minutes = 0;
+            this.seconds = 0;
+        }
     }
 };
 </script>
@@ -145,6 +198,10 @@ export default {
     animation: bounce-out 0.1s;
 }
 
+.shake-enter-active {
+    animation: shake 0.5s;
+}
+
 @keyframes bounce-in {
     0% {
         transform: scale(0.5);
@@ -167,6 +224,24 @@ export default {
     100% {
         transform: scale(0.5);
         opacity: 0;
+    }
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20%,
+    60% {
+        transform: translateX(-10px);
+    }
+
+    40%,
+    80% {
+        transform: translateX(10px);
     }
 }
 </style>
