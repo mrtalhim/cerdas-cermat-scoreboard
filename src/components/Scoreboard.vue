@@ -1,24 +1,20 @@
 <template>
-    <div class="flex flex-col items-center mx-auto text-center p-4 gap-2 h-screen">
+    <div :class="['flex flex-col items-center mx-auto text-center p-4 gap-2 h-screen relative', backgroundColorClass]">
         <input placeholder="Scoreboard" class="w-full font-bold text-4xl text-center text-pretty bg-transparent">
-        <div class="flex flex-row gap-2 items-center m-2">
+        <div class="flex flex-row gap-2 items-baseline m-2">
             <button @click="togglePanel" class="bg-gray-800 text-white px-4 py-2 rounded-lg">
                 {{ isPanelOpen ? 'Hide' : 'Setting' }}
             </button>
             <button @click="addTeam" class="bg-green-600 text-white px-4 py-2 rounded-lg">Add Team</button>
-            <div :class="['flex flex-row gap-2 text-4xl font-bold transition-all duration-500', countdownClass]">
-                <input v-if="!isCountingDown" v-model.number="minutes" type="number" min="0"
-                    class="w-20 py-1 text-center border rounded-lg text-black text-xl" />
-                <input v-if="!isCountingDown" v-model.number="seconds" type="number" min="0"
-                    class="w-20 py-1 text-center border rounded-lg text-black text-xl" />
-                <div v-else>
-                    {{ formattedTime }}
-                </div>
+            <div v-if="!isCountingDown" class="flex gap-2 items-end">
+                <input v-model.number="minutes" type="number" min="0" placeholder="Minutes"
+                    class="w-20 text-black text-center p-2 border rounded-lg">
+                <span>m</span>
+                <input v-model.number="seconds" type="number" min="0" placeholder="Seconds"
+                    class="w-20 text-black text-center p-2 border rounded-lg">
+                <span>s</span>
+                <button @click="startCountdown" class="bg-green-600 text-white px-4 py-2 rounded-lg">Timer</button>
             </div>
-            <button v-if="!isCountingDown" @click="startCountdown"
-                class="bg-blue-600 text-white px-4 py-2 rounded-lg">Start</button>
-            <button v-if="isCountingDown" @click="resetCountdown"
-                class="bg-red-600 text-white px-4 py-2 rounded-lg">Reset</button>
         </div>
         <!-- Collapsible Panel -->
         <transition name="fade">
@@ -41,6 +37,15 @@
             </div>
         </transition>
 
+        <!-- Countdown Input and Overlay -->
+        <div v-if="isCountingDown"
+            class="absolute inset-0 bg-black bg-opacity-75 flex flex-col items-center justify-center gap-4">
+            <div class="text-white text-9xl font-bold animate-pulse">
+                {{ formattedCountdown }}
+            </div>
+            <button @click="resetCountdown" class="bg-red-600 text-white px-4 py-2 rounded-lg">Reset</button>
+        </div>
+
         <!-- Team Panel -->
         <transition-group name="fade" tag="div" mode="out-in"
             :class="['grid gap-4 w-full h-4/6 flex-1 px-8 pb-8', teamGridClass]">
@@ -51,7 +56,8 @@
                 <div class="flex flex-row gap-2">
                     <input v-model="team.name" placeholder="Team Name"
                         class="text-2xl text-gray-950 text-center font-semibold p-2 w-full border rounded-lg uppercase" />
-                    <button class="bg-red-600 text-white px-4 py-2 rounded-lg" @click="removeTeam(index)">X</button>
+                    <button class="bg-red-600 text-white px-4 py-2 rounded-lg"
+                        @click="removeTeam(index)">&#10006;</button>
                 </div>
 
                 <div class="flex flex-row flex-1 justify-between">
@@ -64,19 +70,19 @@
 
                     <div class="flex flex-col justify-center gap-2">
                         <button @click="changeScore(index, globalScores.score1)"
-                            class="bg-green-500 text-white font-bold px-4 py-2 rounded-lg">{{ globalScores.score1 >= 0 ?
+                            class="bg-green-500 text-white font-bold px-2 py-1 rounded-lg">{{ globalScores.score1 >= 0 ?
                                 '+' : ''
                             }}{{
                                 globalScores.score1 }}</button>
 
                         <button @click="changeScore(index, globalScores.score2)"
-                            class="bg-blue-500 text-white font-bold px-4 py-2 rounded-lg">{{ globalScores.score2 >= 0 ?
+                            class="bg-blue-500 text-white font-bold px-2 py-1 rounded-lg">{{ globalScores.score2 >= 0 ?
                                 '+' : ''
                             }}{{
                                 globalScores.score2 }}</button>
 
                         <button @click="changeScore(index, globalScores.score3)"
-                            class="bg-yellow-500 text-white font-bold px-4 py-2 rounded-lg">{{ globalScores.score3 >= 0
+                            class="bg-yellow-500 text-white font-bold px-2 py-1 rounded-lg">{{ globalScores.score3 >= 0
                                 ?
                                 '+' : ''
                             }}{{ globalScores.score3 }}</button>
@@ -98,22 +104,25 @@ export default {
                 score3: 50
             },
             isPanelOpen: true,
+            lastChange: 0,
             minutes: 0,
-            seconds: 0,
+            seconds: 5,
+            originalMinutes: 0,
+            originalSeconds: 0,
             isCountingDown: false,
             countdown: null,
-            countdownClass: ''
+            backgroundColorClass: '' // For background highlighting
         };
     },
     computed: {
-        formattedTime() {
-            const min = String(this.minutes).padStart(2, '0');
-            const sec = String(this.seconds).padStart(2, '0');
-            return `${min}:${sec}`;
+        formattedCountdown() {
+            const minutes = String(this.minutes).padStart(2, '0');
+            const seconds = String(this.seconds).padStart(2, '0');
+            return `${minutes}:${seconds}`;
         },
         teamGridClass() {
             const teamCount = this.teams.length;
-            if (teamCount <= 2) return 'grid-cols-1';
+            if (teamCount < 2) return 'grid-cols-1';
             if (teamCount <= 4) return 'grid-cols-2';
             if (teamCount <= 6) return 'grid-cols-3';
             return 'grid-cols-4';
@@ -122,7 +131,16 @@ export default {
             const teamCount = this.teams.length;
             if (teamCount <= 6) return 'text-8xl';
             return 'text-6xl';
-        }
+        },
+        scoreboardBackgroundClass() {
+            if (this.lastChange > 0) {
+                return 'bg-green-200';
+            } else if (this.lastChange < 0) {
+                return 'bg-red-200';
+            } else {
+                return 'bg-white';
+            }
+        },
     },
     methods: {
         addTeam() {
@@ -141,42 +159,46 @@ export default {
         togglePanel() {
             this.isPanelOpen = !this.isPanelOpen;  // Toggle panel visibility
         },
+        highlightBackground(colorClass) {
+            this.backgroundColorClass = colorClass + ' bg-transition';
+            setTimeout(() => {
+                this.backgroundColorClass = 'bg-transition';
+            }, 500);
+        },
         startCountdown() {
             if (this.minutes === 0 && this.seconds === 0) {
                 return;
             }
-            this.isCountingDown = true;
-            this.countdownClass = 'bounce-enter-active';
 
+            this.originalMinutes = this.minutes;
+            this.originalSeconds = this.seconds;
+            this.isCountingDown = true;
             this.countdown = setInterval(() => {
-                if (this.seconds > 0) {
-                    this.seconds--;
-                } else if (this.minutes > 0) {
-                    this.minutes--;
-                    this.seconds = 59;
+                if (this.seconds === 1 && this.minutes === 0) {
+                    this.resetCountdown();
+                    this.highlightBackground('bg-red-500'); // Highlight background when countdown ends
                 } else {
-                    clearInterval(this.countdown);
-                    this.isCountingDown = false;
-                    this.countdownClass = 'shake-enter-active';
-                    setTimeout(() => {
-                        this.countdownClass = '';
-                    }, 1000);
+                    if (this.seconds === 0) {
+                        this.minutes--;
+                        this.seconds = 59;
+                    } else {
+                        this.seconds--;
+                    }
                 }
             }, 1000);
         },
         resetCountdown() {
             clearInterval(this.countdown);
             this.isCountingDown = false;
-            this.countdownClass = '';
-            this.minutes = 0;
-            this.seconds = 0;
+            this.minutes = this.originalMinutes;
+            this.seconds = this.originalSeconds;
         }
     }
 };
 </script>
 
 <style scoped>
-/* Tailwind CSS animations */
+/* Add transition for smooth background color change */
 .fade-enter-active {
     transition: opacity 0.5s ease;
 }
@@ -198,8 +220,27 @@ export default {
     animation: bounce-out 0.1s;
 }
 
-.shake-enter-active {
-    animation: shake 0.5s;
+.bg-transition {
+    transition: background-color 0.5s ease;
+}
+
+/* Countdown animation */
+.animate-pulse {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    25% {
+        transform: scale(2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 @keyframes bounce-in {
@@ -224,24 +265,6 @@ export default {
     100% {
         transform: scale(0.5);
         opacity: 0;
-    }
-}
-
-@keyframes shake {
-
-    0%,
-    100% {
-        transform: translateX(0);
-    }
-
-    20%,
-    60% {
-        transform: translateX(-10px);
-    }
-
-    40%,
-    80% {
-        transform: translateX(10px);
     }
 }
 </style>
