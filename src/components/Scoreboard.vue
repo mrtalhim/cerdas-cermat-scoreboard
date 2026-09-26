@@ -69,6 +69,13 @@
       >
         ⛶ Presentasi
       </button>
+      <button
+        @click="toggleMute"
+        :title="isMuted ? 'Nyalakan suara' : 'Bisukan suara'"
+        class="bg-slate-600 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]"
+      >
+        {{ isMuted ? '🔇 Bisukan' : '🔊 Suara' }}
+      </button>
       <div v-if="!isCountingDown" class="flex flex-row flex-wrap gap-1.5 sm:gap-2 items-center justify-center portrait:w-full">
         <label class="sr-only" for="timer-minutes">Menit</label>
         <input
@@ -380,6 +387,7 @@ export default {
       isPanelOpen: false,
       isHistoryOpen: false,
       isPresenting: false,
+      isMuted: false,
       minutes: 0,
       seconds: 5,
       originalMinutes: 0,
@@ -472,7 +480,8 @@ export default {
           globalScores: this.globalScores,
           history: this.history.slice(-MAX_HISTORY),
           minutes: this.minutes,
-          seconds: this.seconds
+          seconds: this.seconds,
+          isMuted: this.isMuted
         }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
       } catch {
@@ -493,6 +502,7 @@ export default {
         this.history = data.history ?? []
         if (typeof data.minutes === 'number') this.minutes = data.minutes
         if (typeof data.seconds === 'number') this.seconds = data.seconds
+        if (typeof data.isMuted === 'boolean') this.isMuted = data.isMuted
         // Don't cover the board with settings when there's already a saved game
         this.isPanelOpen = this.teams.length === 0
       } catch {
@@ -541,6 +551,7 @@ export default {
       const nextScore = prevScore + amount
       team.score = nextScore
       team.lastChange = amount
+      this.playScoreBlip(amount)
       this.tweenScore(team, nextScore)
       this.pushHistory({
         type: 'score',
@@ -820,6 +831,45 @@ export default {
     },
     testSound() {
       this.safePlay(this.tick)
+    },
+    toggleMute() {
+      this.isMuted = !this.isMuted
+      this.save()
+    },
+    ensureAudioCtx() {
+      try {
+        if (!this._ctx) {
+          const AC = window.AudioContext || window.webkitAudioContext
+          if (!AC) return null
+          this._ctx = new AC()
+        }
+        if (this._ctx.state === 'suspended') this._ctx.resume().catch(() => {})
+        return this._ctx
+      } catch {
+        return null
+      }
+    },
+    playScoreBlip(amount) {
+      if (this.isMuted) return
+      const ctx = this.ensureAudioCtx()
+      if (!ctx) return
+      try {
+        const up = amount >= 0
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = up ? 'sine' : 'triangle'
+        osc.frequency.value = up ? 880 : 220
+        const t = ctx.currentTime
+        gain.gain.setValueAtTime(0.0001, t)
+        gain.gain.exponentialRampToValueAtTime(0.25, t + 0.01)
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.15)
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.start(t)
+        osc.stop(t + 0.16)
+      } catch {
+        // no sound — board keeps working
+      }
     },
     safePlay(audio) {
       if (!audio) return
