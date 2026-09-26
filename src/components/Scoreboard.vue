@@ -397,7 +397,9 @@ export default {
       countdown: null,
       backgroundColorClass: '',
       alarm: null,
-      tick: null
+      tick: null,
+      correct: null,
+      wrong: null
     }
   },
   computed: {
@@ -551,7 +553,8 @@ export default {
       const nextScore = prevScore + amount
       team.score = nextScore
       team.lastChange = amount
-      this.playScoreBlip(amount)
+      // original v1 behavior: correct.wav on +, wrong.wav on −
+      this.safePlay(amount >= 0 ? this.correct : this.wrong)
       this.tweenScore(team, nextScore)
       this.pushHistory({
         type: 'score',
@@ -822,57 +825,37 @@ export default {
         const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`
         this.alarm = new Audio(`${base}buzz.wav`)
         this.tick = new Audio(`${base}tick.wav`)
+        this.correct = new Audio(`${base}correct.wav`)
+        this.wrong = new Audio(`${base}wrong.wav`)
         this.alarm.preload = 'auto'
         this.tick.preload = 'auto'
+        this.correct.preload = 'auto'
+        this.wrong.preload = 'auto'
       } catch {
         this.alarm = null
         this.tick = null
+        this.correct = null
+        this.wrong = null
       }
     },
     testSound() {
-      this.safePlay(this.tick)
+      // explicit sound check — plays even when muted
+      const audio = this.tick
+      if (!audio) return
+      try {
+        audio.currentTime = 0
+        const p = audio.play()
+        if (p && typeof p.catch === 'function') p.catch(() => {})
+      } catch {
+        // audio unavailable — board keeps working
+      }
     },
     toggleMute() {
       this.isMuted = !this.isMuted
       this.save()
     },
-    ensureAudioCtx() {
-      try {
-        if (!this._ctx) {
-          const AC = window.AudioContext || window.webkitAudioContext
-          if (!AC) return null
-          this._ctx = new AC()
-        }
-        if (this._ctx.state === 'suspended') this._ctx.resume().catch(() => {})
-        return this._ctx
-      } catch {
-        return null
-      }
-    },
-    playScoreBlip(amount) {
-      if (this.isMuted) return
-      const ctx = this.ensureAudioCtx()
-      if (!ctx) return
-      try {
-        const up = amount >= 0
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.type = up ? 'sine' : 'triangle'
-        osc.frequency.value = up ? 880 : 220
-        const t = ctx.currentTime
-        gain.gain.setValueAtTime(0.0001, t)
-        gain.gain.exponentialRampToValueAtTime(0.25, t + 0.01)
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.15)
-        osc.connect(gain)
-        gain.connect(ctx.destination)
-        osc.start(t)
-        osc.stop(t + 0.16)
-      } catch {
-        // no sound — board keeps working
-      }
-    },
     safePlay(audio) {
-      if (!audio) return
+      if (!audio || this.isMuted) return
       try {
         audio.currentTime = 0
         const p = audio.play()
