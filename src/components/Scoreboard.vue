@@ -1,29 +1,36 @@
 <template>
   <div :class="['flex flex-col items-center mx-auto text-center p-2 portrait:p-2 sm:p-4 gap-1.5 portrait:gap-1.5 sm:gap-2 min-h-screen min-h-dvh relative w-full max-w-7xl overflow-x-clip pb-[max(0.5rem,env(safe-area-inset-bottom))]', backgroundColorClass]">
     <input
+      v-if="!isPresenting"
       v-model="title"
-      placeholder="Scoreboard"
-      aria-label="Scoreboard title"
+      placeholder="Papan Skor"
+      aria-label="Judul papan skor"
       class="w-full font-bold text-xl portrait:text-xl sm:text-3xl lg:text-4xl text-center text-pretty bg-transparent px-2 py-1"
     />
+    <h1
+      v-else
+      class="w-full font-bold text-xl portrait:text-xl sm:text-3xl lg:text-4xl text-center text-pretty px-2 py-1 truncate"
+    >
+      {{ title || 'Papan Skor' }}
+    </h1>
 
     <!-- Toolbar -->
-    <div class="flex flex-row flex-wrap gap-1.5 portrait:gap-1.5 sm:gap-2 items-center justify-center m-1 sm:m-2 w-full max-w-4xl px-1">
+    <div v-if="!isPresenting" class="flex flex-row flex-wrap gap-1.5 portrait:gap-1.5 sm:gap-2 items-center justify-center m-1 sm:m-2 w-full max-w-4xl px-1">
       <button @click="togglePanel" class="bg-gray-800 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]">
-        Setting
+        Pengaturan
       </button>
       <button
         @click="addTeam"
         class="bg-green-600 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg transition-all duration-100 hover:scale-105 active:scale-105 touch-manipulation portrait:min-h-[2.75rem]"
       >
-        Add Team
+        Tambah Tim
       </button>
       <button
         @click="toggleHistory"
         class="bg-slate-700 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg relative touch-manipulation portrait:min-h-[2.75rem]"
-        aria-label="Toggle score history"
+        aria-label="Buka riwayat skor"
       >
-        History
+        Riwayat
         <span
           v-if="history.length"
           class="absolute -top-2 -right-2 bg-amber-400 text-black text-xs font-bold rounded-full px-2 py-0.5"
@@ -34,101 +41,143 @@
       <button
         @click="undo"
         :disabled="!canUndo"
-        title="Undo last change (Ctrl+Z)"
+        title="Urungkan perubahan terakhir (Ctrl+Z)"
         class="bg-indigo-600 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation portrait:min-h-[2.75rem]"
       >
-        Undo
+        Urungkan
       </button>
       <button
         @click="redo"
         :disabled="!canRedo"
-        title="Redo (Ctrl+Shift+Z)"
+        title="Ulangi (Ctrl+Shift+Z)"
         class="bg-indigo-400 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation portrait:min-h-[2.75rem]"
       >
-        Redo
+        Ulangi
       </button>
       <button
         @click="celebrateWinner"
         :disabled="teams.length === 0"
-        title="Celebrate current leader"
+        title="Rayakan tim yang memimpin"
         class="bg-amber-500 text-black font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-100 hover:scale-105 touch-manipulation portrait:min-h-[2.75rem]"
       >
-        🎉 Winner
+        🎉 Pemenang
+      </button>
+      <button
+        @click="togglePresent"
+        title="Mode presentasi: sembunyikan toolbar (F)"
+        class="bg-slate-800 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]"
+      >
+        ⛶ Presentasi
       </button>
       <div v-if="!isCountingDown" class="flex flex-row flex-wrap gap-1.5 sm:gap-2 items-center justify-center portrait:w-full">
-        <label class="sr-only" for="timer-minutes">Minutes</label>
+        <label class="sr-only" for="timer-minutes">Menit</label>
         <input
           id="timer-minutes"
           v-model.number="minutes"
           type="number"
           min="0"
           max="999"
-          placeholder="Minutes"
+          placeholder="Menit"
           class="w-16 sm:w-20 text-base text-black text-end p-2 border rounded-lg"
         />
         <span aria-hidden="true">m</span>
-        <label class="sr-only" for="timer-seconds">Seconds</label>
+        <label class="sr-only" for="timer-seconds">Detik</label>
         <input
           id="timer-seconds"
           v-model.number="seconds"
           type="number"
           min="0"
           max="59"
-          placeholder="Seconds"
+          placeholder="Detik"
           class="w-16 sm:w-20 text-base text-black text-end p-2 border rounded-lg"
         />
-        <span aria-hidden="true">s</span>
+        <span aria-hidden="true">d</span>
         <button @click="startCountdown" class="bg-green-600 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]">
-          Timer
+          Mulai
         </button>
       </div>
     </div>
 
+    <!-- Floating mini-controls while presenting (toolbar is hidden) -->
+    <div
+      v-if="isPresenting"
+      class="fixed bottom-3 right-3 z-40 flex gap-2 opacity-70 hover:opacity-100 focus-within:opacity-100"
+    >
+      <button
+        @click="undo"
+        :disabled="!canUndo"
+        title="Urungkan (Ctrl+Z)"
+        class="bg-indigo-600 text-white text-sm px-3 py-2 rounded-full shadow-lg disabled:opacity-40 touch-manipulation min-h-[2.75rem]"
+      >
+        ↩ Urungkan
+      </button>
+      <button
+        v-if="!isCountingDown"
+        @click="startCountdown"
+        title="Mulai pewaktu"
+        class="bg-green-600 text-white text-sm px-3 py-2 rounded-full shadow-lg touch-manipulation min-h-[2.75rem]"
+      >
+        ⏱ Mulai
+      </button>
+      <button
+        @click="togglePresent"
+        title="Keluar mode presentasi (Esc)"
+        class="bg-slate-800 text-white text-sm px-3 py-2 rounded-full shadow-lg touch-manipulation min-h-[2.75rem]"
+      >
+        ✕ Keluar
+      </button>
+    </div>
+
     <!-- Leader banner -->
-    <div v-if="leaderNames" class="text-base sm:text-lg font-semibold text-gray-800 px-2 text-balance" aria-live="polite">
-      👑 Leading: {{ leaderNames }}
+    <div v-if="leaderNames" class="px-2" aria-live="polite">
+      <span class="inline-block bg-amber-300 text-black text-base sm:text-lg font-semibold px-3 py-1 rounded-full shadow">
+        👑 Memimpin: {{ leaderNames }}
+      </span>
     </div>
 
     <!-- Settings panel -->
     <transition name="fade">
       <div
         v-show="isPanelOpen"
-        class="absolute top-24 portrait:top-20 sm:top-36 left-1/2 -translate-x-1/2 sm:left-4 sm:translate-x-0 sm:self-start z-20 flex flex-col bg-gray-200 p-4 portrait:p-4 sm:p-8 gap-2 rounded-lg shadow-lg w-[min(24rem,calc(100vw-1rem))] max-h-[85dvh] portrait:max-h-[calc(100dvh-6rem)] overflow-y-auto"
+        class="fixed top-24 portrait:top-20 sm:top-36 left-1/2 -translate-x-1/2 sm:left-4 sm:translate-x-0 sm:self-start z-20 flex flex-col bg-gray-200 p-4 portrait:p-4 sm:p-8 gap-2 rounded-lg shadow-lg w-[min(24rem,calc(100vw-1rem))] max-h-[85dvh] portrait:max-h-[calc(100dvh-6rem)] overflow-y-auto"
       >
         <div class="flex flex-row gap-2 justify-end items-baseline">
-          <h2 class="text-3xl sm:text-5xl text-black font-bold mb-4 w-full">Setting</h2>
-          <button @click="togglePanel" class="absolute bg-gray-800 text-white px-3 py-2 rounded-lg" aria-label="Close settings">
+          <h2 class="text-3xl sm:text-5xl text-black font-bold mb-4 w-full">Pengaturan</h2>
+          <button @click="togglePanel" class="absolute bg-gray-800 text-white px-3 py-2 rounded-lg" aria-label="Tutup pengaturan">
             &#10006;
           </button>
         </div>
         <div class="flex flex-col gap-2">
-          <span class="text-black font-bold">Set Score Button (0 to hide)</span>
+          <span class="text-black font-bold">Atur Tombol Skor (0 untuk sembunyikan)</span>
           <div class="flex flex-wrap gap-2 sm:gap-4 justify-center w-full">
             <input
               v-model.number="globalScores.score1"
               type="number"
-              aria-label="First score button value"
+              aria-label="Nilai tombol skor pertama"
               class="bg-green-500 text-lg sm:text-xl text-white font-bold text-center p-2 w-24 sm:w-32 min-w-0 rounded-lg"
-              placeholder="Score Value"
+              placeholder="Nilai Skor"
             />
             <input
               v-model.number="globalScores.score2"
               type="number"
-              aria-label="Second score button value"
+              aria-label="Nilai tombol skor kedua"
               class="bg-blue-500 text-lg sm:text-xl text-white font-bold text-center p-2 w-24 sm:w-32 min-w-0 rounded-lg"
-              placeholder="Score Value"
+              placeholder="Nilai Skor"
             />
             <input
               v-model.number="globalScores.score3"
               type="number"
-              aria-label="Third score button value"
+              aria-label="Nilai tombol skor ketiga"
               class="bg-yellow-500 text-lg sm:text-xl text-white font-bold text-center p-2 w-24 sm:w-32 min-w-0 rounded-lg"
-              placeholder="Score Value"
+              placeholder="Nilai Skor"
             />
           </div>
         </div>
         <button @click="resetAll" class="bg-red-600 text-white text-center p-2 rounded-lg w-auto">
-          Clear All Teams
+          Hapus Semua Tim
+        </button>
+        <button @click="testSound" class="bg-slate-600 text-white text-center p-2 rounded-lg w-auto">
+          🔊 Tes Suara
         </button>
       </div>
     </transition>
@@ -137,11 +186,11 @@
     <transition name="fade">
       <div
         v-show="isHistoryOpen"
-        class="absolute top-24 portrait:top-20 sm:top-36 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-4 sm:self-end z-20 flex flex-col bg-white p-4 sm:p-6 gap-2 rounded-lg shadow-lg w-[min(20rem,calc(100vw-1rem))] max-h-[70vh] max-h-[70dvh] portrait:max-h-[calc(100dvh-6rem)] overflow-hidden text-left"
+        class="fixed top-24 portrait:top-20 sm:top-36 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-4 sm:self-end z-20 flex flex-col bg-white p-4 sm:p-6 gap-2 rounded-lg shadow-lg w-[min(20rem,calc(100vw-1rem))] max-h-[70vh] max-h-[70dvh] portrait:max-h-[calc(100dvh-6rem)] overflow-hidden text-left"
       >
         <div class="flex flex-row gap-2 justify-between items-center">
-          <h2 class="text-2xl text-black font-bold">History</h2>
-          <button @click="toggleHistory" class="bg-gray-800 text-white px-3 py-1 rounded-lg" aria-label="Close history">
+          <h2 class="text-2xl text-black font-bold">Riwayat</h2>
+          <button @click="toggleHistory" class="bg-gray-800 text-white px-3 py-1 rounded-lg" aria-label="Tutup riwayat">
             &#10006;
           </button>
         </div>
@@ -151,25 +200,25 @@
             :disabled="!canUndo"
             class="flex-1 bg-indigo-600 text-white px-2 py-1 rounded-lg disabled:opacity-40"
           >
-            Undo
+            Urungkan
           </button>
           <button
             @click="redo"
             :disabled="!canRedo"
             class="flex-1 bg-indigo-400 text-white px-2 py-1 rounded-lg disabled:opacity-40"
           >
-            Redo
+            Ulangi
           </button>
           <button
             @click="clearHistory"
             :disabled="history.length === 0 && redoStack.length === 0"
             class="flex-1 bg-gray-500 text-white px-2 py-1 rounded-lg disabled:opacity-40"
           >
-            Clear
+            Hapus
           </button>
         </div>
         <p v-if="history.length === 0" class="text-gray-500 text-sm">
-          No changes yet. Score updates, adds and removes will show up here.
+          Belum ada perubahan. Perubahan skor, tambah dan hapus tim akan muncul di sini.
         </p>
         <ol v-else class="overflow-y-auto min-h-0 flex flex-col gap-1 pr-1">
           <li
@@ -187,7 +236,7 @@
     <!-- Countdown overlay -->
     <div
       v-if="isCountingDown"
-      class="absolute inset-0 z-30 bg-black bg-opacity-75 flex flex-col items-center justify-center gap-4 p-4"
+      class="fixed inset-0 z-30 bg-black bg-opacity-75 flex flex-col items-center justify-center gap-4 p-4"
     >
       <div class="text-white font-bold tabular-nums leading-none text-center text-[clamp(2.75rem,17vw,9rem)] portrait:text-[clamp(2.75rem,20vw,6.5rem)] animate-pulse" aria-live="assertive">
         {{ formattedCountdown }}
@@ -198,17 +247,17 @@
           @click="pauseCountdown"
           class="bg-amber-500 text-black font-bold px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem] portrait:px-6"
         >
-          Pause
+          Jeda
         </button>
         <button
           v-else
           @click="resumeCountdown"
           class="bg-green-600 text-white px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem] portrait:px-6"
         >
-          Resume
+          Lanjut
         </button>
         <button @click="resetCountdown" class="bg-red-600 text-white px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem] portrait:px-6">
-          Reset
+          Ulang
         </button>
       </div>
     </div>
@@ -222,9 +271,9 @@
         :class="[
           'team-card flex flex-col p-3 sm:p-4 gap-2 rounded-lg shadow transition-all duration-300 min-h-[9rem] portrait:min-h-[12rem] sm:min-h-[12rem] min-w-0',
           team.lastChange > 0
-            ? 'bg-green-500 scale-110'
+            ? 'bg-green-500 scale-[1.03]'
             : team.lastChange < 0
-              ? 'bg-red-500 scale-90'
+              ? 'bg-red-500 scale-[0.97]'
               : 'bg-gray-100',
           leaders.includes(team.id) ? 'ring-4 ring-amber-400' : ''
         ]"
@@ -232,14 +281,15 @@
         <div class="flex flex-row gap-2 min-w-0">
           <input
             v-model="team.name"
-            placeholder="Team Name"
-            :aria-label="`Team ${team.id} name`"
+            placeholder="Nama Tim"
+            aria-label="Nama tim"
             class="text-base portrait:text-lg sm:text-xl lg:text-2xl text-gray-950 text-center font-bold p-2 w-full min-w-0 border rounded-lg uppercase transition-all duration-100"
           />
           <button
+            v-if="!isPresenting"
             class="bg-red-600 text-white px-3 sm:px-4 rounded-lg shrink-0 touch-manipulation portrait:min-h-[2.75rem] portrait:min-w-[2.75rem] transition-all duration-100 hover:scale-105"
             @click="removeTeam(team.id)"
-            aria-label="Remove team"
+            aria-label="Hapus tim"
           >
             &#10006;
           </button>
@@ -252,7 +302,7 @@
             <div
               :key="team.score"
               :class="[
-                'text-black font-bold tabular-nums leading-none subpixel-antialiased flex-1 min-w-0 flex items-center justify-center whitespace-nowrap overflow-hidden portrait:py-2 portrait:min-h-[4.5rem]',
+                'text-black font-bold tabular-nums leading-none subpixel-antialiased flex-1 min-w-0 flex items-center justify-center whitespace-nowrap overflow-hidden text-ellipsis portrait:py-2 portrait:min-h-[4.5rem]',
                 scoreClass
               ]"
               aria-live="polite"
@@ -329,6 +379,8 @@ export default {
       redoStack: [],
       isPanelOpen: false,
       isHistoryOpen: false,
+      isPresenting: false,
+      fsRequested: false,
       minutes: 0,
       seconds: 5,
       originalMinutes: 0,
@@ -375,7 +427,7 @@ export default {
       if (!this.leaders.length) return ''
       const names = this.teams
         .filter((t) => this.leaders.includes(t.id))
-        .map((t) => t.name?.trim() || 'Unnamed team')
+        .map((t) => t.name?.trim() || 'Tim tanpa nama')
       return names.join(', ')
     },
     canUndo() {
@@ -409,11 +461,13 @@ export default {
     this.load()
     this.initAudio()
     window.addEventListener('keydown', this.handleKeydown)
+    document.addEventListener('fullscreenchange', this.syncFullscreen)
     this.animateEntrance()
   },
   beforeUnmount() {
     this.stopTicking()
     window.removeEventListener('keydown', this.handleKeydown)
+    document.removeEventListener('fullscreenchange', this.syncFullscreen)
   },
   methods: {
     // ---------- persistence ----------
@@ -512,18 +566,18 @@ export default {
 
     // ---------- history / undo ----------
     describeEntry(entry) {
-      const name = (entry.teamName ?? entry.team?.name ?? '').trim() || 'Unnamed team'
+      const name = (entry.teamName ?? entry.team?.name ?? '').trim() || 'Tim tanpa nama'
       switch (entry.type) {
         case 'score':
           return `${name}: ${entry.amount >= 0 ? '+' : ''}${entry.amount} (${entry.prevScore} → ${entry.nextScore})`
         case 'add':
-          return `Added ${((entry.team?.name ?? '')).trim() || 'new team'}`
+          return `Menambah ${((entry.team?.name ?? '')).trim() || 'tim baru'}`
         case 'remove':
-          return `Removed ${name} (${entry.team?.score ?? 0} pts)`
+          return `Menghapus ${name} (${entry.team?.score ?? 0} poin)`
         case 'reset':
-          return `Cleared ${(entry.teams ?? []).length} team(s)`
+          return `Menghapus ${(entry.teams ?? []).length} tim`
         default:
-          return 'Changed scoreboard'
+          return 'Mengubah papan skor'
       }
     },
     formatEntryTime(at) {
@@ -624,7 +678,7 @@ export default {
     },
     clearHistory() {
       if (!this.history.length && !this.redoStack.length) return
-      if (!window.confirm('Clear score history? This cannot be undone.')) return
+      if (!window.confirm('Hapus riwayat? Tindakan ini tidak dapat dibatalkan.')) return
       this.history = []
       this.redoStack = []
       this.save()
@@ -646,8 +700,15 @@ export default {
         return
       }
       if (e.key === 'Escape') {
+        if (this.isPresenting) {
+          this.togglePresent()
+          return
+        }
         this.isPanelOpen = false
         this.isHistoryOpen = false
+      }
+      if ((e.key === 'f' || e.key === 'F') && !typing && !e.ctrlKey && !e.metaKey) {
+        this.togglePresent()
       }
     },
 
@@ -657,6 +718,38 @@ export default {
     },
     toggleHistory() {
       this.isHistoryOpen = !this.isHistoryOpen
+    },
+    // ---------- present mode ----------
+    async togglePresent() {
+      if (this.isPresenting) {
+        this.isPresenting = false
+        this.fsRequested = false
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen()
+        } catch {
+          // leaving fullscreen is best-effort; present flag already off
+        }
+        return
+      }
+      this.isPanelOpen = false
+      this.isHistoryOpen = false
+      this.isPresenting = true
+      try {
+        if (document.documentElement.requestFullscreen) {
+          this.fsRequested = true
+          await document.documentElement.requestFullscreen()
+        }
+      } catch {
+        // e.g. iOS Safari / iframe without permission — stay in fake-present mode
+        this.fsRequested = false
+      }
+    },
+    syncFullscreen() {
+      // user pressed the browser's own Esc inside fullscreen
+      if (!document.fullscreenElement && this.fsRequested) {
+        this.fsRequested = false
+        this.isPresenting = false
+      }
     },
     highlightBackground(colorClass) {
       this.backgroundColorClass = colorClass + ' bg-transition'
@@ -727,7 +820,10 @@ export default {
     // ---------- timer ----------
     initAudio() {
       try {
-        const base = import.meta.env.BASE_URL || '/'
+        // import.meta.env.BASE_URL has no trailing slash on prod
+        // (e.g. "/cerdas-cermat-scoreboard"), so normalize before joining.
+        const rawBase = import.meta.env.BASE_URL || '/'
+        const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`
         this.alarm = new Audio(`${base}buzz.wav`)
         this.tick = new Audio(`${base}tick.wav`)
         this.alarm.preload = 'auto'
@@ -736,6 +832,9 @@ export default {
         this.alarm = null
         this.tick = null
       }
+    },
+    testSound() {
+      this.safePlay(this.tick)
     },
     safePlay(audio) {
       if (!audio) return
@@ -808,7 +907,7 @@ export default {
     },
     resetAll() {
       if (!this.teams.length) return
-      if (!window.confirm(`Remove all ${this.teams.length} team(s)? You can Undo right after.`)) return
+      if (!window.confirm(`Hapus semua ${this.teams.length} tim? Anda bisa mengurungkan tepat setelah ini.`)) return
       this.stopTicking()
       this.isCountingDown = false
       this.isPaused = false
