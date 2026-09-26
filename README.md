@@ -1,71 +1,74 @@
 # Cerdas Cermat Scoreboard
 
-A no-nonsense scoreboard app built with Vue.js and Tailwind CSS. This allows you to manage a scoreboard with multiple teams, like for quizzes (Cerdas Cermat).
+A no-nonsense scoreboard app built with Vue 3 and Tailwind CSS. Manage teams, scores, a countdown timer, and a full change history — built for live quizzes (Cerdas Cermat) on a big screen.
 
 ## Features
 
-- Add and Remove Teams: Users can add new teams or remove existing ones.
-- Dynamic Score Updates: Change scores using predefined values or change it to any value, even negative!
-- Optimized for large screen for shows with exciting animations!
+- **Teams**: add / remove / rename teams, scores update with flash + bounce animations.
+- **History + undo**: every score change, add, remove, and clear-all is logged. Undo (`Ctrl+Z`), redo (`Ctrl+Shift+Z` / `Ctrl+Y`), per-event log with timestamps, clear-history with confirm. "Clear All Teams" is itself undoable.
+- **Persistence**: title, teams, score-button settings, timer defaults, and history survive a page refresh via `localStorage` (`cc-scoreboard-v1`). Safe to refresh mid-show.
+- **Timer**: minutes/seconds input, pause / resume / reset, tick + buzzer sounds, red flash when time is up.
+- **Winner celebration**: 👑 leader detection (hidden on ties / fresh board) with `canvas-confetti` shower via the 🎉 Winner button.
+- **Leader highlight**: current leader card gets an amber ring + crown.
 
-## Installation
+## Getting started
 
 1. Clone the repository:
 
-   `git clone https://github.com/your-username/scoreboard-app.git`
+   `git clone https://github.com/mrtalhim/cerdas-cermat-scoreboard.git`
 
-2. Navigate to the project directory:
+2. Enter the project:
 
-   `cd scoreboard-app`
+   `cd cerdas-cermat-scoreboard`
 
 3. Install dependencies:
 
    `npm install`
 
-4. Run the development server:
+4. Run the dev server:
 
-   `npm run serve`
+   `npm run dev`
 
-5. Open your browser and navigate to `http://localhost:5173` to see the app in action.
+5. Open `http://localhost:5173` in your browser.
+
+Other scripts:
+
+- `npm run build` — production build to `dist/` (untracked in git; deployed from CI / `gh-pages` branch).
+- `npm run preview` — preview the production build.
+- `npm run lint` — ESLint (v8 config in `.eslintrc.cjs`).
+- `npm run format` — Prettier over `src/`.
 
 ## Usage
 
-- Add Team: Click on the "Add Team" button to add a new team.
-- Remove Team: Click the "X" button next to a team's name to remove it.
-- Scoring: Use the score buttons to add or subtract points from a team's score. Scores are dynamically updated and visually highlighted.
-- Setting: Click the "Setting" button to adjust global score values.
+- **Title**: edit the big input at the top — it auto-saves.
+- **Setting**: adjust the three global score buttons (set one to `0` to hide it), or clear all teams.
+- **Scoring**: `+100` / `-50` / `+50` buttons per team (configurable). Scores flash green/red.
+- **History**: button with a count badge opens the log panel. Undo/redo work from the toolbar, the panel, or the keyboard.
+- **Timer**: enter minutes + seconds, press Timer. Pause/Resume/Reset from the overlay. `Esc` closes panels.
+- **Winner**: press 🎉 Winner to shower confetti over the current leader.
 
-### Template
+Keyboard shortcuts (ignored while typing in an input):
 
-- Header Input: Displays a title input field.
-- Buttons: Includes buttons for toggling the settings panel and adding teams.
-- Collapsible Panel: Allows editing of global score values.
-- Team Panel: Displays a list of teams with their scores. The team panel adjusts its layout based on the number of teams.
+| Keys | Action |
+| ---- | ------ |
+| `Ctrl/⌘ + Z` | Undo last change |
+| `Ctrl/⌘ + Shift + Z` or `Ctrl/⌘ + Y` | Redo |
+| `Esc` | Close settings / history panels |
 
-### Script
+## Project structure
 
-- Data: Manages the list of teams and global score values.
-- Computed Properties: Dynamically adjusts the layout and score display based on the number of teams.
-- Methods:
-  - `addTeam()`: Adds a new team.
-  - `removeTeam(index)`: Removes a team at a given index.
-  - `changeScore(index, amount)`: Updates a team's score and applies visual feedback.
-  - `togglePanel()`: Toggles the visibility of the settings panel.
+- `src/components/Scoreboard.vue` — the whole board (state, history, timer, persistence).
+- `src/views/HomeView.vue` — renders `Scoreboard` at `/`.
+- `src/App.vue` — `<RouterView />` shell.
+- `src/router/index.js` — single `/` route (the old `/about` scaffold was removed).
+- `public/buzz.wav`, `public/tick.wav` — timer sounds, loaded relative to `import.meta.env.BASE_URL` so they work under the `/cerdas-cermat-scoreboard` base path.
 
-## Contributing
+## Notes / roadmap
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/your-feature`).
-3. Make your changes.
-4. Commit your changes (`git commit -am 'Add new feature'`).
-5. Push to the branch (`git push origin feature/your-feature`).
-6. Create a new Pull Request.
+- Dependencies are kept on their current majors (Vue 3.5, Vite 5.4, Tailwind 3.4, ESLint 8) via `npm update`. Jumping to Tailwind v4 / Vite 7+ / ESLint v9 flat config is deliberately left as a separate migration — each changes config-file formats.
+- `dist/` is git-ignored and untracked; don't commit build output.
+- History is capped at 200 entries to bound `localStorage` usage.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Vue.js - The progressive JavaScript framework used in this project.
-- Tailwind CSS - The utility-first CSS framework used for styling.
+MIT

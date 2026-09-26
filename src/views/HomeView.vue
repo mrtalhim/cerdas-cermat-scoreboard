@@ -1,9 +1,9 @@
 <script setup>
-import TheWelcome from '../components/TheWelcome.vue'
+import Scoreboard from '../components/Scoreboard.vue'
 </script>
 
 <template>
   <main>
-    <TheWelcome />
+    <Scoreboard />
   </main>
 </template>
