@@ -303,7 +303,7 @@
               :key="team.score"
               :class="[
                 'text-black font-bold tabular-nums leading-none subpixel-antialiased flex-1 min-w-0 flex items-center justify-center whitespace-nowrap overflow-hidden text-ellipsis portrait:py-2 portrait:min-h-[4.5rem]',
-                scoreClass
+                scoreClassFor(team)
               ]"
               aria-live="polite"
             >
@@ -311,7 +311,7 @@
             </div>
           </transition>
 
-          <div class="gap-2 portrait:grid portrait:grid-cols-3 portrait:w-full landscape:flex landscape:flex-col landscape:justify-center landscape:shrink-0 landscape:w-20 sm:landscape:w-24">
+          <div class="gap-2 portrait:grid portrait:grid-cols-3 portrait:w-full landscape:flex landscape:flex-col landscape:justify-center landscape:shrink-0 landscape:w-16 sm:landscape:w-24">
             <button
               v-if="globalScores.score1 !== 0"
               @click="changeScore(team.id, globalScores.score1)"
@@ -410,10 +410,20 @@ export default {
       if (teamCount <= 6) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
       return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
     },
-    scoreClass() {
-      const teamCount = this.teams.length
-      if (teamCount <= 6) return 'text-4xl portrait:text-5xl sm:text-6xl lg:text-7xl xl:text-8xl'
-      return 'text-3xl portrait:text-4xl sm:text-5xl lg:text-6xl'
+    scoreClassFor(team) {
+      // Shrink the number as it grows so long scores never get clipped.
+      const value = Math.round(team.displayScore ?? team.score ?? 0)
+      const digits = String(Math.abs(value)).length + (value < 0 ? 1 : 0) + (this.leaders.includes(team.id) ? 2 : 0)
+      const ladder = [
+        'text-xl portrait:text-2xl sm:text-3xl lg:text-4xl',
+        'text-2xl portrait:text-3xl sm:text-4xl lg:text-5xl',
+        'text-3xl portrait:text-4xl sm:text-5xl lg:text-6xl',
+        'text-4xl portrait:text-5xl sm:text-6xl lg:text-7xl xl:text-8xl'
+      ]
+      let level = this.teams.length > 6 ? 2 : 3
+      if (digits >= 5) level -= 1
+      if (digits >= 7) level -= 1
+      return ladder[Math.max(0, level)]
     },
     leaders() {
       if (this.teams.length < 2) return []
