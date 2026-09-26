@@ -380,7 +380,6 @@ export default {
       isPanelOpen: false,
       isHistoryOpen: false,
       isPresenting: false,
-      fsRequested: false,
       minutes: 0,
       seconds: 5,
       originalMinutes: 0,
@@ -409,21 +408,6 @@ export default {
       if (teamCount === 4) return 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4'
       if (teamCount <= 6) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
       return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-    },
-    scoreClassFor(team) {
-      // Shrink the number as it grows so long scores never get clipped.
-      const value = Math.round(team.displayScore ?? team.score ?? 0)
-      const digits = String(Math.abs(value)).length + (value < 0 ? 1 : 0) + (this.leaders.includes(team.id) ? 2 : 0)
-      const ladder = [
-        'text-xl portrait:text-2xl sm:text-3xl lg:text-4xl',
-        'text-2xl portrait:text-3xl sm:text-4xl lg:text-5xl',
-        'text-3xl portrait:text-4xl sm:text-5xl lg:text-6xl',
-        'text-4xl portrait:text-5xl sm:text-6xl lg:text-7xl xl:text-8xl'
-      ]
-      let level = this.teams.length > 6 ? 2 : 3
-      if (digits >= 5) level -= 1
-      if (digits >= 7) level -= 1
-      return ladder[Math.max(0, level)]
     },
     leaders() {
       if (this.teams.length < 2) return []
@@ -471,13 +455,11 @@ export default {
     this.load()
     this.initAudio()
     window.addEventListener('keydown', this.handleKeydown)
-    document.addEventListener('fullscreenchange', this.syncFullscreen)
     this.animateEntrance()
   },
   beforeUnmount() {
     this.stopTicking()
     window.removeEventListener('keydown', this.handleKeydown)
-    document.removeEventListener('fullscreenchange', this.syncFullscreen)
   },
   methods: {
     // ---------- persistence ----------
@@ -729,38 +711,15 @@ export default {
     toggleHistory() {
       this.isHistoryOpen = !this.isHistoryOpen
     },
-    // ---------- present mode ----------
-    async togglePresent() {
+    // ---------- present mode (sembunyikan toolbar saja, tanpa fullscreen) ----------
+    togglePresent() {
+      this.isPresenting = !this.isPresenting
       if (this.isPresenting) {
-        this.isPresenting = false
-        this.fsRequested = false
-        try {
-          if (document.fullscreenElement) await document.exitFullscreen()
-        } catch {
-          // leaving fullscreen is best-effort; present flag already off
-        }
-        return
-      }
-      this.isPanelOpen = false
-      this.isHistoryOpen = false
-      this.isPresenting = true
-      try {
-        if (document.documentElement.requestFullscreen) {
-          this.fsRequested = true
-          await document.documentElement.requestFullscreen()
-        }
-      } catch {
-        // e.g. iOS Safari / iframe without permission — stay in fake-present mode
-        this.fsRequested = false
+        this.isPanelOpen = false
+        this.isHistoryOpen = false
       }
     },
-    syncFullscreen() {
-      // user pressed the browser's own Esc inside fullscreen
-      if (!document.fullscreenElement && this.fsRequested) {
-        this.fsRequested = false
-        this.isPresenting = false
-      }
-    },
+    // ---------- anime.js motion ----------
     highlightBackground(colorClass) {
       this.backgroundColorClass = colorClass + ' bg-transition'
       setTimeout(() => {
@@ -791,6 +750,22 @@ export default {
       })
     },
     // ---------- anime.js motion ----------
+    scoreClassFor(team) {
+      // Shrink the number as it grows so long scores never get clipped.
+      const value = Math.round(team.displayScore ?? team.score ?? 0)
+      const digits =
+        String(Math.abs(value)).length + (value < 0 ? 1 : 0) + (this.leaders.includes(team.id) ? 2 : 0)
+      const ladder = [
+        'text-xl portrait:text-2xl sm:text-3xl lg:text-4xl',
+        'text-2xl portrait:text-3xl sm:text-4xl lg:text-5xl',
+        'text-3xl portrait:text-4xl sm:text-5xl lg:text-6xl',
+        'text-4xl portrait:text-5xl sm:text-6xl lg:text-7xl xl:text-8xl'
+      ]
+      let level = this.teams.length > 6 ? 2 : 3
+      if (digits >= 5) level -= 1
+      if (digits >= 7) level -= 1
+      return ladder[Math.max(0, level)]
+    },
     tweenScore(team, to) {
       scoreAnims.get(team.id)?.cancel()
       scoreAnims.delete(team.id)
