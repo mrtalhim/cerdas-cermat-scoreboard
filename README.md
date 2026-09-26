@@ -61,6 +61,12 @@ Keyboard shortcuts (ignored while typing in an input):
 - `src/App.vue` — renders `Scoreboard` directly (no router; single-screen app).
 - `public/buzz.wav`, `public/tick.wav` — timer sounds, loaded relative to `import.meta.env.BASE_URL` so they work under the `/cerdas-cermat-scoreboard` base path.
 
+## Deploy
+
+Pushing to `main` triggers `.github/workflows/deploy.yml`: it runs `npm ci` + `npm run build` and publishes `dist/` to the `gh-pages` branch, which is what GitHub Pages serves. No manual `dist/` handling needed (the folder is git-ignored). You can also run the workflow manually from the Actions tab (`workflow_dispatch`).
+
+Note: the Vite `base` is `/cerdas-cermat-scoreboard`, matching the project-pages URL. If you fork under a different repo name, update `base` in `vite.config.js`.
+
 ## Notes / roadmap
 
 - Dependencies are kept on their current majors (Vue 3.5, Vite 5.4, Tailwind 3.4, ESLint 8) via `npm update`. Jumping to Tailwind v4 / Vite 7+ / ESLint v9 flat config is deliberately left as a separate migration — each changes config-file formats.
