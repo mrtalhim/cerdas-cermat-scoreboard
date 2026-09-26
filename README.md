@@ -58,9 +58,7 @@ Keyboard shortcuts (ignored while typing in an input):
 ## Project structure
 
 - `src/components/Scoreboard.vue` — the whole board (state, history, timer, persistence).
-- `src/views/HomeView.vue` — renders `Scoreboard` at `/`.
-- `src/App.vue` — `<RouterView />` shell.
-- `src/router/index.js` — single `/` route (the old `/about` scaffold was removed).
+- `src/App.vue` — renders `Scoreboard` directly (no router; single-screen app).
 - `public/buzz.wav`, `public/tick.wav` — timer sounds, loaded relative to `import.meta.env.BASE_URL` so they work under the `/cerdas-cermat-scoreboard` base path.
 
 ## Notes / roadmap

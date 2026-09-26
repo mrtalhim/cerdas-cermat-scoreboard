@@ -1,10 +1,17 @@
 <template>
-  <RouterView />
+  <div id="app">
+    <Scoreboard />
+  </div>
 </template>
 
 <script>
+import Scoreboard from './components/Scoreboard.vue'
+
 export default {
-  name: 'App'
+  name: 'App',
+  components: {
+    Scoreboard
+  }
 }
 </script>
 
