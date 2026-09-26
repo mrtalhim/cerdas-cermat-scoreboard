@@ -218,8 +218,9 @@
       <div
         v-for="team in teams"
         :key="team.id"
+        :data-team-id="team.id"
         :class="[
-          'flex flex-col p-4 gap-2 rounded-lg shadow transition-all duration-300',
+          'team-card flex flex-col p-4 gap-2 rounded-lg shadow transition-all duration-300',
           team.lastChange > 0
             ? 'bg-green-500 scale-110'
             : team.lastChange < 0
@@ -254,7 +255,7 @@
               ]"
               aria-live="polite"
             >
-              <span v-if="leaders.includes(team.id)" aria-hidden="true">👑&nbsp;</span>{{ team.score }}
+              <span v-if="leaders.includes(team.id)" aria-hidden="true">👑&nbsp;</span>{{ Math.round(team.displayScore ?? team.score) }}
             </div>
           </transition>
 
@@ -291,9 +292,21 @@
 
 <script>
 import confetti from 'canvas-confetti'
+import { animate, stagger } from 'animejs'
 
 const STORAGE_KEY = 'cc-scoreboard-v1'
 const MAX_HISTORY = 200
+
+// One running score tween per team so rapid clicks retarget instead of stacking
+const scoreAnims = new Map()
+
+function prefersReducedMotion() {
+  return (
+    typeof window !== 'undefined' &&
+    !!window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+}
 
 function uid() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
@@ -390,6 +403,7 @@ export default {
     this.load()
     this.initAudio()
     window.addEventListener('keydown', this.handleKeydown)
+    this.animateEntrance()
   },
   beforeUnmount() {
     this.stopTicking()
@@ -422,7 +436,7 @@ export default {
         }
         const data = JSON.parse(raw)
         this.title = data.title ?? ''
-        this.teams = (data.teams ?? []).map((t) => ({ ...t, lastChange: 0 }))
+        this.teams = (data.teams ?? []).map((t) => ({ ...t, lastChange: 0, displayScore: t.score }))
         this.globalScores = { score1: 100, score2: -50, score3: 50, ...(data.globalScores ?? {}) }
         this.history = data.history ?? []
         if (typeof data.minutes === 'number') this.minutes = data.minutes
@@ -445,18 +459,26 @@ export default {
 
     // ---------- teams ----------
     addTeam() {
-      const team = { id: uid(), name: '', score: 0, lastChange: 0 }
+      const team = { id: uid(), name: '', score: 0, displayScore: 0, lastChange: 0 }
       this.teams.push(team)
       this.pushHistory({ type: 'add', teamId: team.id, team: { ...team, lastChange: 0 } })
+      this.$nextTick(() => this.popCard(team.id))
     },
     removeTeam(teamId) {
       const index = this.teams.findIndex((t) => t.id === teamId)
       if (index === -1) return
       const [removed] = this.teams.splice(index, 1)
+      scoreAnims.get(teamId)?.cancel()
+      scoreAnims.delete(teamId)
       this.pushHistory({
         type: 'remove',
         teamId: removed.id,
-        team: { id: removed.id, name: removed.name, score: removed.score },
+        team: {
+          id: removed.id,
+          name: removed.name,
+          score: removed.score,
+          displayScore: removed.displayScore ?? removed.score
+        },
         index
       })
     },
@@ -467,6 +489,7 @@ export default {
       const nextScore = prevScore + amount
       team.score = nextScore
       team.lastChange = amount
+      this.tweenScore(team, nextScore)
       this.pushHistory({
         type: 'score',
         teamId: team.id,
@@ -514,6 +537,7 @@ export default {
           if (team) {
             team.score = entry.prevScore
             team.lastChange = -entry.amount
+            this.tweenScore(team, entry.prevScore)
             setTimeout(() => {
               team.lastChange = 0
             }, 400)
@@ -523,6 +547,7 @@ export default {
               id: entry.teamId,
               name: entry.teamName ?? '',
               score: entry.prevScore,
+              displayScore: entry.prevScore,
               lastChange: 0
             })
           }
@@ -558,6 +583,7 @@ export default {
           if (team) {
             team.score = entry.nextScore
             team.lastChange = entry.amount
+            this.tweenScore(team, entry.nextScore)
             setTimeout(() => {
               team.lastChange = 0
             }, 400)
@@ -566,6 +592,7 @@ export default {
               id: entry.teamId,
               name: entry.teamName ?? '',
               score: entry.nextScore,
+              displayScore: entry.nextScore,
               lastChange: 0
             })
           }
@@ -642,6 +669,53 @@ export default {
       fire({ particleCount: 120, spread: 75, origin: { y: 0.6 } })
       setTimeout(() => fire({ particleCount: 80, angle: 60, spread: 60, origin: { x: 0 } }), 150)
       setTimeout(() => fire({ particleCount: 80, angle: 120, spread: 60, origin: { x: 1 } }), 300)
+      if (!this.leaders.length || prefersReducedMotion()) return
+      const cards = this.leaders
+        .map((id) => this.$el.querySelector(`[data-team-id="${id}"]`))
+        .filter(Boolean)
+      if (!cards.length) return
+      animate(cards, {
+        scale: [1, 1.08, 1],
+        duration: 600,
+        delay: stagger(120),
+        ease: 'inOutQuad'
+      })
+    },
+    // ---------- anime.js motion ----------
+    tweenScore(team, to) {
+      scoreAnims.get(team.id)?.cancel()
+      scoreAnims.delete(team.id)
+      if (prefersReducedMotion()) {
+        team.displayScore = to
+        return
+      }
+      // anime mutates the reactive property each tick — Vue re-renders the count
+      scoreAnims.set(
+        team.id,
+        animate(team, {
+          displayScore: to,
+          duration: 600,
+          ease: 'outExpo'
+        })
+      )
+    },
+    popCard(teamId) {
+      if (prefersReducedMotion()) return
+      const el = this.$el.querySelector(`[data-team-id="${teamId}"]`)
+      if (!el) return
+      // CSS fade handles opacity concurrently; anime owns the springy scale
+      animate(el, { scale: [0.6, 1], duration: 500, ease: 'outBack' })
+    },
+    animateEntrance() {
+      // initial render has no CSS enter transition (no `appear`), so anime owns it
+      if (!this.teams.length || prefersReducedMotion()) return
+      animate(this.$el.querySelectorAll('.team-card'), {
+        opacity: [0, 1],
+        translateY: [24, 0],
+        delay: stagger(90),
+        duration: 500,
+        ease: 'outExpo'
+      })
     },
 
     // ---------- timer ----------
@@ -732,7 +806,16 @@ export default {
       this.stopTicking()
       this.isCountingDown = false
       this.isPaused = false
-      const snapshot = this.teams.map((t) => ({ id: t.id, name: t.name, score: t.score }))
+      const snapshot = this.teams.map((t) => ({
+        id: t.id,
+        name: t.name,
+        score: t.score,
+        displayScore: t.displayScore ?? t.score
+      }))
+      for (const t of this.teams) {
+        scoreAnims.get(t.id)?.cancel()
+        scoreAnims.delete(t.id)
+      }
       this.teams = []
       this.minutes = 0
       this.seconds = 5

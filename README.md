@@ -5,6 +5,7 @@ A no-nonsense scoreboard app built with Vue 3 and Tailwind CSS. Manage teams, sc
 ## Features
 
 - **Teams**: add / remove / rename teams, scores update with flash + bounce animations.
+- **Animated scores**: numbers count up/down via Anime.js (`outExpo`), new cards spring in (`outBack`), board cascades in with a stagger on load, leaders pulse on celebration. Honors `prefers-reduced-motion` (values snap instantly).
 - **History + undo**: every score change, add, remove, and clear-all is logged. Undo (`Ctrl+Z`), redo (`Ctrl+Shift+Z` / `Ctrl+Y`), per-event log with timestamps, clear-history with confirm. "Clear All Teams" is itself undoable.
 - **Persistence**: title, teams, score-button settings, timer defaults, and history survive a page refresh via `localStorage` (`cc-scoreboard-v1`). Safe to refresh mid-show.
 - **Timer**: minutes/seconds input, pause / resume / reset, tick + buzzer sounds, red flash when time is up.
