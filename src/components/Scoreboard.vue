@@ -1,26 +1,26 @@
 <template>
-  <div :class="['flex flex-col items-center mx-auto text-center p-4 gap-2 min-h-screen relative', backgroundColorClass]">
+  <div :class="['flex flex-col items-center mx-auto text-center p-2 portrait:p-2 sm:p-4 gap-1.5 portrait:gap-1.5 sm:gap-2 min-h-screen min-h-dvh relative w-full max-w-7xl overflow-x-clip pb-[max(0.5rem,env(safe-area-inset-bottom))]', backgroundColorClass]">
     <input
       v-model="title"
       placeholder="Scoreboard"
       aria-label="Scoreboard title"
-      class="w-full font-bold text-4xl text-center text-pretty bg-transparent"
+      class="w-full font-bold text-xl portrait:text-xl sm:text-3xl lg:text-4xl text-center text-pretty bg-transparent px-2 py-1"
     />
 
     <!-- Toolbar -->
-    <div class="flex flex-row flex-wrap gap-2 items-center justify-center m-2">
-      <button @click="togglePanel" class="bg-gray-800 text-white px-4 py-2 rounded-lg">
+    <div class="flex flex-row flex-wrap gap-1.5 portrait:gap-1.5 sm:gap-2 items-center justify-center m-1 sm:m-2 w-full max-w-4xl px-1">
+      <button @click="togglePanel" class="bg-gray-800 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]">
         Setting
       </button>
       <button
         @click="addTeam"
-        class="bg-green-600 text-white px-4 py-2 rounded-lg transition-all duration-100 hover:scale-105 active:scale-105"
+        class="bg-green-600 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg transition-all duration-100 hover:scale-105 active:scale-105 touch-manipulation portrait:min-h-[2.75rem]"
       >
         Add Team
       </button>
       <button
         @click="toggleHistory"
-        class="bg-slate-700 text-white px-4 py-2 rounded-lg relative"
+        class="bg-slate-700 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg relative touch-manipulation portrait:min-h-[2.75rem]"
         aria-label="Toggle score history"
       >
         History
@@ -35,7 +35,7 @@
         @click="undo"
         :disabled="!canUndo"
         title="Undo last change (Ctrl+Z)"
-        class="bg-indigo-600 text-white px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
+        class="bg-indigo-600 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation portrait:min-h-[2.75rem]"
       >
         Undo
       </button>
@@ -43,7 +43,7 @@
         @click="redo"
         :disabled="!canRedo"
         title="Redo (Ctrl+Shift+Z)"
-        class="bg-indigo-400 text-white px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
+        class="bg-indigo-400 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation portrait:min-h-[2.75rem]"
       >
         Redo
       </button>
@@ -51,11 +51,11 @@
         @click="celebrateWinner"
         :disabled="teams.length === 0"
         title="Celebrate current leader"
-        class="bg-amber-500 text-black font-bold px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-100 hover:scale-105"
+        class="bg-amber-500 text-black font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-100 hover:scale-105 touch-manipulation portrait:min-h-[2.75rem]"
       >
         🎉 Winner
       </button>
-      <div v-if="!isCountingDown" class="flex gap-2 items-center">
+      <div v-if="!isCountingDown" class="flex flex-row flex-wrap gap-1.5 sm:gap-2 items-center justify-center portrait:w-full">
         <label class="sr-only" for="timer-minutes">Minutes</label>
         <input
           id="timer-minutes"
@@ -64,7 +64,7 @@
           min="0"
           max="999"
           placeholder="Minutes"
-          class="w-20 text-black text-end p-2 border rounded-lg"
+          class="w-16 sm:w-20 text-base text-black text-end p-2 border rounded-lg"
         />
         <span aria-hidden="true">m</span>
         <label class="sr-only" for="timer-seconds">Seconds</label>
@@ -75,17 +75,17 @@
           min="0"
           max="59"
           placeholder="Seconds"
-          class="w-20 text-black text-end p-2 border rounded-lg"
+          class="w-16 sm:w-20 text-base text-black text-end p-2 border rounded-lg"
         />
         <span aria-hidden="true">s</span>
-        <button @click="startCountdown" class="bg-green-600 text-white px-4 py-2 rounded-lg">
+        <button @click="startCountdown" class="bg-green-600 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]">
           Timer
         </button>
       </div>
     </div>
 
     <!-- Leader banner -->
-    <div v-if="leaderNames" class="text-lg font-semibold text-gray-800" aria-live="polite">
+    <div v-if="leaderNames" class="text-base sm:text-lg font-semibold text-gray-800 px-2 text-balance" aria-live="polite">
       👑 Leading: {{ leaderNames }}
     </div>
 
@@ -93,36 +93,36 @@
     <transition name="fade">
       <div
         v-show="isPanelOpen"
-        class="absolute self-start z-20 flex flex-col bg-gray-200 p-8 gap-2 rounded-lg shadow-lg"
+        class="absolute top-24 portrait:top-20 sm:top-36 left-1/2 -translate-x-1/2 sm:left-4 sm:translate-x-0 sm:self-start z-20 flex flex-col bg-gray-200 p-4 portrait:p-4 sm:p-8 gap-2 rounded-lg shadow-lg w-[min(24rem,calc(100vw-1rem))] max-h-[85dvh] portrait:max-h-[calc(100dvh-6rem)] overflow-y-auto"
       >
         <div class="flex flex-row gap-2 justify-end items-baseline">
-          <h2 class="text-5xl text-black font-bold mb-4 w-full">Setting</h2>
+          <h2 class="text-3xl sm:text-5xl text-black font-bold mb-4 w-full">Setting</h2>
           <button @click="togglePanel" class="absolute bg-gray-800 text-white px-3 py-2 rounded-lg" aria-label="Close settings">
             &#10006;
           </button>
         </div>
         <div class="flex flex-col gap-2">
           <span class="text-black font-bold">Set Score Button (0 to hide)</span>
-          <div class="flex flex-wrap gap-4 justify-center w-auto">
+          <div class="flex flex-wrap gap-2 sm:gap-4 justify-center w-full">
             <input
               v-model.number="globalScores.score1"
               type="number"
               aria-label="First score button value"
-              class="bg-green-500 text-xl text-white font-bold text-center p-2 max-w-32 rounded-lg"
+              class="bg-green-500 text-lg sm:text-xl text-white font-bold text-center p-2 w-24 sm:w-32 min-w-0 rounded-lg"
               placeholder="Score Value"
             />
             <input
               v-model.number="globalScores.score2"
               type="number"
               aria-label="Second score button value"
-              class="bg-blue-500 text-xl text-white font-bold text-center p-2 max-w-32 rounded-lg"
+              class="bg-blue-500 text-lg sm:text-xl text-white font-bold text-center p-2 w-24 sm:w-32 min-w-0 rounded-lg"
               placeholder="Score Value"
             />
             <input
               v-model.number="globalScores.score3"
               type="number"
               aria-label="Third score button value"
-              class="bg-yellow-500 text-xl text-white font-bold text-center p-2 max-w-32 rounded-lg"
+              class="bg-yellow-500 text-lg sm:text-xl text-white font-bold text-center p-2 w-24 sm:w-32 min-w-0 rounded-lg"
               placeholder="Score Value"
             />
           </div>
@@ -137,7 +137,7 @@
     <transition name="fade">
       <div
         v-show="isHistoryOpen"
-        class="absolute self-end z-20 flex flex-col bg-white p-6 gap-2 rounded-lg shadow-lg w-80 max-h-[70vh] text-left"
+        class="absolute top-24 portrait:top-20 sm:top-36 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-4 sm:self-end z-20 flex flex-col bg-white p-4 sm:p-6 gap-2 rounded-lg shadow-lg w-[min(20rem,calc(100vw-1rem))] max-h-[70vh] max-h-[70dvh] portrait:max-h-[calc(100dvh-6rem)] overflow-hidden text-left"
       >
         <div class="flex flex-row gap-2 justify-between items-center">
           <h2 class="text-2xl text-black font-bold">History</h2>
@@ -171,7 +171,7 @@
         <p v-if="history.length === 0" class="text-gray-500 text-sm">
           No changes yet. Score updates, adds and removes will show up here.
         </p>
-        <ol v-else class="overflow-y-auto flex flex-col gap-1 pr-1">
+        <ol v-else class="overflow-y-auto min-h-0 flex flex-col gap-1 pr-1">
           <li
             v-for="entry in historyReversed"
             :key="entry.id"
@@ -187,40 +187,40 @@
     <!-- Countdown overlay -->
     <div
       v-if="isCountingDown"
-      class="absolute inset-0 z-30 bg-black bg-opacity-75 flex flex-col items-center justify-center gap-4"
+      class="absolute inset-0 z-30 bg-black bg-opacity-75 flex flex-col items-center justify-center gap-4 p-4"
     >
-      <div class="text-white text-9xl font-bold animate-pulse" aria-live="assertive">
+      <div class="text-white font-bold tabular-nums leading-none text-center text-[clamp(2.75rem,17vw,9rem)] portrait:text-[clamp(2.75rem,20vw,6.5rem)] animate-pulse" aria-live="assertive">
         {{ formattedCountdown }}
       </div>
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2 justify-center portrait:gap-3">
         <button
           v-if="!isPaused"
           @click="pauseCountdown"
-          class="bg-amber-500 text-black font-bold px-4 py-2 rounded-lg"
+          class="bg-amber-500 text-black font-bold px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem] portrait:px-6"
         >
           Pause
         </button>
         <button
           v-else
           @click="resumeCountdown"
-          class="bg-green-600 text-white px-4 py-2 rounded-lg"
+          class="bg-green-600 text-white px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem] portrait:px-6"
         >
           Resume
         </button>
-        <button @click="resetCountdown" class="bg-red-600 text-white px-4 py-2 rounded-lg">
+        <button @click="resetCountdown" class="bg-red-600 text-white px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem] portrait:px-6">
           Reset
         </button>
       </div>
     </div>
 
     <!-- Team Panel -->
-    <transition-group name="fade" tag="div" :class="['grid gap-4 w-full h-4/6 flex-1 px-8 pb-8', teamGridClass]">
+    <transition-group name="fade" tag="div" :class="['grid gap-2 portrait:gap-2 sm:gap-4 w-full flex-1 min-h-0 px-1 sm:px-4 lg:px-8 pb-2 portrait:pb-2 sm:pb-8 auto-rows-fr', teamGridClass]">
       <div
         v-for="team in teams"
         :key="team.id"
         :data-team-id="team.id"
         :class="[
-          'team-card flex flex-col p-4 gap-2 rounded-lg shadow transition-all duration-300',
+          'team-card flex flex-col p-3 sm:p-4 gap-2 rounded-lg shadow transition-all duration-300 min-h-[9rem] portrait:min-h-[12rem] sm:min-h-[12rem] min-w-0',
           team.lastChange > 0
             ? 'bg-green-500 scale-110'
             : team.lastChange < 0
@@ -229,15 +229,15 @@
           leaders.includes(team.id) ? 'ring-4 ring-amber-400' : ''
         ]"
       >
-        <div class="flex flex-row gap-2">
+        <div class="flex flex-row gap-2 min-w-0">
           <input
             v-model="team.name"
             placeholder="Team Name"
             :aria-label="`Team ${team.id} name`"
-            class="text-2xl text-gray-950 text-center font-bold p-2 w-full border rounded-lg uppercase transition-all duration-100"
+            class="text-base portrait:text-lg sm:text-xl lg:text-2xl text-gray-950 text-center font-bold p-2 w-full min-w-0 border rounded-lg uppercase transition-all duration-100"
           />
           <button
-            class="bg-red-600 text-white px-4 rounded-lg transition-all duration-100 hover:scale-105"
+            class="bg-red-600 text-white px-3 sm:px-4 rounded-lg shrink-0 touch-manipulation portrait:min-h-[2.75rem] portrait:min-w-[2.75rem] transition-all duration-100 hover:scale-105"
             @click="removeTeam(team.id)"
             aria-label="Remove team"
           >
@@ -245,12 +245,14 @@
           </button>
         </div>
 
-        <div class="flex flex-row flex-1 justify-between">
+        <!-- Portrait phones: score on top, buttons in a 3-across row below.
+             Landscape / wide: classic side-by-side with vertical buttons. -->
+        <div class="flex flex-1 min-h-0 gap-2 portrait:flex-col portrait:justify-center landscape:flex-row landscape:justify-between">
           <transition name="bounce" mode="out-in">
             <div
               :key="team.score"
               :class="[
-                'text-black font-bold subpixel-antialiased flex-1 flex items-center justify-center',
+                'text-black font-bold tabular-nums leading-none subpixel-antialiased flex-1 min-w-0 flex items-center justify-center whitespace-nowrap overflow-hidden portrait:py-2 portrait:min-h-[4.5rem]',
                 scoreClass
               ]"
               aria-live="polite"
@@ -259,11 +261,11 @@
             </div>
           </transition>
 
-          <div class="flex flex-col justify-center gap-2">
+          <div class="gap-2 portrait:grid portrait:grid-cols-3 portrait:w-full landscape:flex landscape:flex-col landscape:justify-center landscape:shrink-0 landscape:w-20 sm:landscape:w-24">
             <button
               v-if="globalScores.score1 !== 0"
               @click="changeScore(team.id, globalScores.score1)"
-              class="bg-green-500 text-white font-bold px-2 py-1 rounded-lg transition-all duration-100 hover:scale-105"
+              class="bg-green-500 text-white text-sm portrait:text-base sm:text-base font-bold px-2 py-1 min-h-[2.25rem] portrait:min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation"
             >
               {{ globalScores.score1 >= 0 ? '+' : '' }}{{ globalScores.score1 }}
             </button>
@@ -271,7 +273,7 @@
             <button
               v-if="globalScores.score2 !== 0"
               @click="changeScore(team.id, globalScores.score2)"
-              class="bg-blue-500 text-white font-bold px-2 py-1 rounded-lg transition-all duration-100 hover:scale-105"
+              class="bg-blue-500 text-white text-sm portrait:text-base sm:text-base font-bold px-2 py-1 min-h-[2.25rem] portrait:min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation"
             >
               {{ globalScores.score2 >= 0 ? '+' : '' }}{{ globalScores.score2 }}
             </button>
@@ -279,7 +281,7 @@
             <button
               v-if="globalScores.score3 !== 0"
               @click="changeScore(team.id, globalScores.score3)"
-              class="bg-yellow-500 text-white font-bold px-2 py-1 rounded-lg transition-all duration-100 hover:scale-105"
+              class="bg-yellow-500 text-white text-sm portrait:text-base sm:text-base font-bold px-2 py-1 min-h-[2.25rem] portrait:min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation"
             >
               {{ globalScores.score3 >= 0 ? '+' : '' }}{{ globalScores.score3 }}
             </button>
@@ -346,16 +348,20 @@ export default {
       return `${minutes}:${seconds}`
     },
     teamGridClass() {
+      // Mobile-first, capped by team count so a lone team never sits in half a row.
+      // Narrow / side-by-side windows (<640px) always stack to a single column.
       const teamCount = this.teams.length
-      if (teamCount < 2) return 'grid-cols-1'
-      if (teamCount <= 4) return 'grid-cols-2'
-      if (teamCount <= 6) return 'grid-cols-3'
-      return 'grid-cols-4'
+      if (teamCount <= 1) return 'grid-cols-1'
+      if (teamCount === 2) return 'grid-cols-1 sm:grid-cols-2'
+      if (teamCount === 3) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+      if (teamCount === 4) return 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4'
+      if (teamCount <= 6) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+      return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
     },
     scoreClass() {
       const teamCount = this.teams.length
-      if (teamCount <= 6) return 'text-8xl'
-      return 'text-6xl'
+      if (teamCount <= 6) return 'text-4xl portrait:text-5xl sm:text-6xl lg:text-7xl xl:text-8xl'
+      return 'text-3xl portrait:text-4xl sm:text-5xl lg:text-6xl'
     },
     leaders() {
       if (this.teams.length < 2) return []
