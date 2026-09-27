@@ -13,7 +13,7 @@ module.exports = {
   },
   overrides: [
     {
-      // App root panel routed via HomeView — single-word name is intentional
+      // Single-screen root component: one word, deliberate
       files: ['src/components/Scoreboard.vue'],
       rules: {
         'vue/multi-word-component-names': 'off'

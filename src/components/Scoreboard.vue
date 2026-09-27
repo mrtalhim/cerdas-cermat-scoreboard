@@ -1,410 +1,201 @@
 <template>
   <!-- Full-bleed background layer so flashes fill the whole screen, not just the content column -->
-  <div :class="['min-h-screen min-h-dvh w-full relative overflow-x-clip', backgroundColorClass]">
+  <div
+    class="min-h-screen min-h-dvh w-full relative overflow-x-clip bg-cc-board text-cc-board-ink bg-transition"
+    :style="isFlashing ? { backgroundColor: 'var(--cc-negative)' } : undefined"
+  >
     <div
       class="flex flex-col items-center mx-auto text-center p-2 portrait:p-2 sm:p-4 gap-1.5 portrait:gap-1.5 sm:gap-2 w-full max-w-7xl min-h-screen min-h-dvh pb-[max(0.5rem,env(safe-area-inset-bottom))]"
     >
-    <input
-      v-if="!isPresenting"
-      v-model="title"
-      placeholder="Papan Skor"
-      aria-label="Judul papan skor"
-      class="w-full font-bold text-xl portrait:text-xl sm:text-3xl lg:text-4xl text-center text-pretty bg-transparent px-2 py-1"
-    />
-    <h1
-      v-else
-      class="w-full font-bold text-xl portrait:text-xl sm:text-3xl lg:text-4xl text-center text-pretty px-2 py-1 truncate"
-    >
-      {{ title || 'Papan Skor' }}
-    </h1>
-
-    <!-- Toolbar -->
-    <div v-if="!isPresenting" class="flex flex-row flex-wrap gap-1.5 portrait:gap-1.5 sm:gap-2 items-center justify-center m-1 sm:m-2 w-full max-w-4xl px-1">
-      <button @click="togglePanel" class="bg-gray-800 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]">
-        Pengaturan
-      </button>
-      <button
-        @click="addTeam"
-        class="bg-green-600 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg transition-all duration-100 hover:scale-105 active:scale-105 touch-manipulation portrait:min-h-[2.75rem]"
-      >
-        Tambah Tim
-      </button>
-      <button
-        @click="toggleHistory"
-        class="bg-slate-700 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg relative touch-manipulation portrait:min-h-[2.75rem]"
-        aria-label="Buka riwayat skor"
-      >
-        Riwayat
-        <span
-          v-if="history.length"
-          class="absolute -top-2 -right-2 bg-amber-400 text-black text-xs font-bold rounded-full px-2 py-0.5"
-        >
-          {{ history.length }}
-        </span>
-      </button>
-      <button
-        @click="undo"
-        :disabled="!canUndo"
-        title="Urungkan perubahan terakhir (Ctrl+Z)"
-        class="bg-indigo-600 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation portrait:min-h-[2.75rem]"
-      >
-        Urungkan
-      </button>
-      <button
-        @click="redo"
-        :disabled="!canRedo"
-        title="Ulangi (Ctrl+Shift+Z)"
-        class="bg-indigo-400 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation portrait:min-h-[2.75rem]"
-      >
-        Ulangi
-      </button>
-      <button
-        @click="celebrateWinner"
-        :disabled="teams.length === 0"
-        title="Rayakan tim yang memimpin"
-        class="bg-amber-500 text-black font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-100 hover:scale-105 touch-manipulation portrait:min-h-[2.75rem]"
-      >
-        🎉 Pemenang
-      </button>
-      <button
-        @click="togglePresent"
-        title="Mode presentasi: sembunyikan toolbar (F)"
-        class="bg-slate-800 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]"
-      >
-        ⛶ Presentasi
-      </button>
-      <button
-        @click="toggleMute"
-        :title="isMuted ? 'Nyalakan suara' : 'Bisukan suara'"
-        class="bg-slate-600 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]"
-      >
-        {{ isMuted ? '🔇 Bisukan' : '🔊 Suara' }}
-      </button>
-      <div v-if="!isCountingDown" class="flex flex-row flex-wrap gap-1.5 sm:gap-2 items-center justify-center portrait:w-full">
-        <label class="sr-only" for="timer-minutes">Menit</label>
-        <input
-          id="timer-minutes"
-          v-model.number="minutes"
-          type="number"
-          min="0"
-          max="999"
-          placeholder="Menit"
-          class="w-16 sm:w-20 text-base text-black text-end p-2 border rounded-lg"
+      <div class="flex flex-row items-center justify-center gap-2 w-full">
+        <img
+          v-if="branding.logoUrl"
+          :src="branding.logoUrl"
+          :alt="`Logo ${branding.appName}`"
+          class="h-8 sm:h-12 w-auto object-contain"
         />
-        <span aria-hidden="true">m</span>
-        <label class="sr-only" for="timer-seconds">Detik</label>
         <input
-          id="timer-seconds"
-          v-model.number="seconds"
-          type="number"
-          min="0"
-          max="59"
-          placeholder="Detik"
-          class="w-16 sm:w-20 text-base text-black text-end p-2 border rounded-lg"
+          v-if="!isPresenting"
+          v-model="title"
+          :placeholder="branding.defaultTitle"
+          aria-label="Judul papan skor"
+          class="w-full font-bold text-xl portrait:text-xl sm:text-3xl lg:text-4xl text-center text-pretty bg-transparent px-2 py-1 text-current placeholder:opacity-60"
         />
-        <span aria-hidden="true">d</span>
-        <button @click="startCountdown" class="bg-green-600 text-white text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]">
-          Mulai
-        </button>
-      </div>
-    </div>
-
-    <!-- Floating mini-controls while presenting (toolbar is hidden) -->
-    <div
-      v-if="isPresenting"
-      class="fixed bottom-3 right-3 z-40 flex gap-2 opacity-70 hover:opacity-100 focus-within:opacity-100"
-    >
-      <button
-        @click="undo"
-        :disabled="!canUndo"
-        title="Urungkan (Ctrl+Z)"
-        class="bg-indigo-600 text-white text-sm px-3 py-2 rounded-full shadow-lg disabled:opacity-40 touch-manipulation min-h-[2.75rem]"
-      >
-        ↩ Urungkan
-      </button>
-      <button
-        v-if="!isCountingDown"
-        @click="startCountdown"
-        title="Mulai pewaktu"
-        class="bg-green-600 text-white text-sm px-3 py-2 rounded-full shadow-lg touch-manipulation min-h-[2.75rem]"
-      >
-        ⏱ Mulai
-      </button>
-      <button
-        @click="togglePresent"
-        title="Keluar mode presentasi (Esc)"
-        class="bg-slate-800 text-white text-sm px-3 py-2 rounded-full shadow-lg touch-manipulation min-h-[2.75rem]"
-      >
-        ✕ Keluar
-      </button>
-    </div>
-
-    <!-- Leader banner -->
-    <div v-if="leaderNames" class="px-2" aria-live="polite">
-      <span class="inline-block bg-amber-300 text-black text-base sm:text-lg font-semibold px-3 py-1 rounded-full shadow">
-        👑 Memimpin: {{ leaderNames }}
-      </span>
-    </div>
-
-    <!-- Settings panel -->
-    <transition name="fade">
-      <div
-        v-show="isPanelOpen"
-        class="fixed top-24 portrait:top-20 sm:top-36 left-1/2 -translate-x-1/2 sm:left-4 sm:translate-x-0 sm:self-start z-20 flex flex-col bg-gray-200 p-4 portrait:p-4 sm:p-8 gap-2 rounded-lg shadow-lg w-[min(24rem,calc(100vw-1rem))] max-h-[85dvh] portrait:max-h-[calc(100dvh-6rem)] overflow-y-auto"
-      >
-        <div class="flex flex-row gap-2 justify-end items-baseline">
-          <h2 class="text-3xl sm:text-5xl text-black font-bold mb-4 w-full">Pengaturan</h2>
-          <button @click="togglePanel" class="absolute bg-gray-800 text-white px-3 py-2 rounded-lg" aria-label="Tutup pengaturan">
-            &#10006;
-          </button>
-        </div>
-        <div class="flex flex-col gap-2">
-          <span class="text-black font-bold">Atur Tombol Skor (0 untuk sembunyikan)</span>
-          <div class="flex flex-wrap gap-2 sm:gap-4 justify-center w-full">
-            <input
-              v-model.number="globalScores.score1"
-              type="number"
-              aria-label="Nilai tombol skor pertama"
-              class="bg-green-500 text-lg sm:text-xl text-white font-bold text-center p-2 w-24 sm:w-32 min-w-0 rounded-lg"
-              placeholder="Nilai Skor"
-            />
-            <input
-              v-model.number="globalScores.score2"
-              type="number"
-              aria-label="Nilai tombol skor kedua"
-              class="bg-blue-500 text-lg sm:text-xl text-white font-bold text-center p-2 w-24 sm:w-32 min-w-0 rounded-lg"
-              placeholder="Nilai Skor"
-            />
-            <input
-              v-model.number="globalScores.score3"
-              type="number"
-              aria-label="Nilai tombol skor ketiga"
-              class="bg-yellow-500 text-lg sm:text-xl text-white font-bold text-center p-2 w-24 sm:w-32 min-w-0 rounded-lg"
-              placeholder="Nilai Skor"
-            />
-          </div>
-        </div>
-        <button @click="resetAll" class="bg-red-600 text-white text-center p-2 rounded-lg w-auto">
-          Hapus Semua Tim
-        </button>
-        <button @click="testSound" class="bg-slate-600 text-white text-center p-2 rounded-lg w-auto">
-          🔊 Tes Suara
-        </button>
-      </div>
-    </transition>
-
-    <!-- History panel -->
-    <transition name="fade">
-      <div
-        v-show="isHistoryOpen"
-        class="fixed top-24 portrait:top-20 sm:top-36 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-4 sm:self-end z-20 flex flex-col bg-white p-4 sm:p-6 gap-2 rounded-lg shadow-lg w-[min(20rem,calc(100vw-1rem))] max-h-[70vh] max-h-[70dvh] portrait:max-h-[calc(100dvh-6rem)] overflow-hidden text-left"
-      >
-        <div class="flex flex-row gap-2 justify-between items-center">
-          <h2 class="text-2xl text-black font-bold">Riwayat</h2>
-          <button @click="toggleHistory" class="bg-gray-800 text-white px-3 py-1 rounded-lg" aria-label="Tutup riwayat">
-            &#10006;
-          </button>
-        </div>
-        <div class="flex gap-2">
-          <button
-            @click="undo"
-            :disabled="!canUndo"
-            class="flex-1 bg-indigo-600 text-white px-2 py-1 rounded-lg disabled:opacity-40"
-          >
-            Urungkan
-          </button>
-          <button
-            @click="redo"
-            :disabled="!canRedo"
-            class="flex-1 bg-indigo-400 text-white px-2 py-1 rounded-lg disabled:opacity-40"
-          >
-            Ulangi
-          </button>
-          <button
-            @click="clearHistory"
-            :disabled="history.length === 0 && redoStack.length === 0"
-            class="flex-1 bg-gray-500 text-white px-2 py-1 rounded-lg disabled:opacity-40"
-          >
-            Hapus
-          </button>
-        </div>
-        <p v-if="history.length === 0" class="text-gray-500 text-sm">
-          Belum ada perubahan. Perubahan skor, tambah dan hapus tim akan muncul di sini.
-        </p>
-        <ol v-else class="overflow-y-auto min-h-0 flex flex-col gap-1 pr-1">
-          <li
-            v-for="entry in historyReversed"
-            :key="entry.id"
-            class="text-sm text-gray-800 border-b border-gray-100 py-1 flex justify-between gap-2"
-          >
-            <span>{{ describeEntry(entry) }}</span>
-            <span class="text-gray-400 shrink-0">{{ formatEntryTime(entry.at) }}</span>
-          </li>
-        </ol>
-      </div>
-    </transition>
-
-    <!-- Countdown overlay -->
-    <div
-      v-if="isCountingDown"
-      class="fixed inset-0 z-30 bg-black bg-opacity-75 flex flex-col items-center justify-center gap-4 p-4"
-    >
-      <div class="text-white font-bold tabular-nums leading-none text-center text-[clamp(2.75rem,17vw,9rem)] portrait:text-[clamp(2.75rem,20vw,6.5rem)] animate-pulse" aria-live="assertive">
-        {{ formattedCountdown }}
-      </div>
-      <div class="flex flex-wrap gap-2 justify-center portrait:gap-3">
-        <button
-          v-if="!isPaused"
-          @click="pauseCountdown"
-          class="bg-amber-500 text-black font-bold px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem] portrait:px-6"
-        >
-          Jeda
-        </button>
-        <button
+        <h1
           v-else
-          @click="resumeCountdown"
-          class="bg-green-600 text-white px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem] portrait:px-6"
+          class="w-full font-bold text-xl portrait:text-xl sm:text-3xl lg:text-4xl text-center text-pretty px-2 py-1 truncate"
         >
-          Lanjut
-        </button>
-        <button @click="resetCountdown" class="bg-red-600 text-white px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem] portrait:px-6">
-          Ulang
-        </button>
+          {{ title || branding.defaultTitle }}
+        </h1>
       </div>
-    </div>
 
-    <!-- Team Panel -->
-    <transition-group name="fade" tag="div" :class="['grid gap-2 portrait:gap-2 sm:gap-4 w-full flex-1 min-h-0 px-1 sm:px-4 lg:px-8 pb-2 portrait:pb-2 sm:pb-8 auto-rows-fr', teamGridClass]">
-      <div
-        v-for="team in teams"
-        :key="team.id"
-        :data-team-id="team.id"
+      <AppToolbar
+        v-if="!isPresenting"
+        :can-undo="canUndo"
+        :can-redo="canRedo"
+        :has-teams="teams.length > 0"
+        :history-count="history.length"
+        :is-counting-down="isCountingDown"
+        :is-muted="isMuted"
+        :minutes="minutes"
+        :seconds="seconds"
+        @open-settings="togglePanel"
+        @add-team="addTeam"
+        @open-history="toggleHistory"
+        @undo="undo"
+        @redo="redo"
+        @celebrate="celebrateWinner"
+        @present="togglePresent"
+        @toggle-mute="toggleMute"
+        @start-countdown="startCountdown"
+        @update:minutes="setMinutes"
+        @update:seconds="setSeconds"
+      />
+
+      <MiniControls
+        v-if="isPresenting"
+        :can-undo="canUndo"
+        :is-counting-down="isCountingDown"
+        @undo="undo"
+        @start-countdown="startCountdown"
+        @close="togglePresent"
+      />
+
+      <LeaderBanner :names="leaderNames" />
+
+      <SettingsPanel
+        :is-open="isPanelOpen"
+        :score-buttons="scoreButtons"
+        :branding="branding"
+        :appearance="appearance"
+        :resolved-colors="resolvedColors"
+        :color-fields="colorFields"
+        :theme-choices="themeChoices"
+        @close="togglePanel"
+        @add-button="addScoreButton"
+        @remove-button="removeScoreButton"
+        @move-button="moveButton"
+        @update-button="updateButton"
+        @reset-buttons="resetScoreButtons"
+        @update-theme="setTheme"
+        @update-color="setColorOverride"
+        @clear-color="clearColorOverride"
+        @update-score-scale="setScoreScale"
+        @reset-appearance="resetAppearance"
+        @update-branding="updateBranding"
+        @reset-branding="resetBranding"
+        @clear-teams="resetAll"
+        @test-sound="testSound"
+      />
+
+      <HistoryPanel
+        :is-open="isHistoryOpen"
+        :entries="historyReversed"
+        :can-undo="canUndo"
+        :can-redo="canRedo"
+        @close="toggleHistory"
+        @undo="undo"
+        @redo="redo"
+        @clear="clearHistory"
+      />
+
+      <CountdownOverlay
+        :formatted="formattedCountdown"
+        :is-counting-down="isCountingDown"
+        :is-paused="isPaused"
+        @pause="pauseCountdown"
+        @resume="resumeCountdown"
+        @reset="resetCountdown"
+      />
+
+      <transition-group
+        ref="teamGrid"
+        name="fade"
+        tag="div"
         :class="[
-          'team-card flex flex-col p-3 sm:p-4 gap-2 rounded-lg shadow transition-all duration-300 min-h-[9rem] portrait:min-h-[12rem] sm:min-h-[12rem] min-w-0',
-          team.lastChange > 0
-            ? 'bg-green-500 scale-[1.03]'
-            : team.lastChange < 0
-              ? 'bg-red-500 scale-[0.97]'
-              : 'bg-gray-100',
-          leaders.includes(team.id) ? 'ring-4 ring-amber-400' : ''
+          'grid gap-2 portrait:gap-2 sm:gap-4 w-full flex-1 min-h-0 px-1 sm:px-4 lg:px-8 pb-2 portrait:pb-2 sm:pb-8 auto-rows-fr',
+          teamGridClass
         ]"
       >
-        <div class="flex flex-row gap-2 min-w-0">
-          <input
-            v-model="team.name"
-            placeholder="Nama Tim"
-            aria-label="Nama tim"
-            class="text-base portrait:text-lg sm:text-xl lg:text-2xl text-gray-950 text-center font-bold p-2 w-full min-w-0 border rounded-lg uppercase transition-all duration-100"
-          />
-          <button
-            v-if="!isPresenting"
-            class="bg-red-600 text-white px-3 sm:px-4 rounded-lg shrink-0 touch-manipulation portrait:min-h-[2.75rem] portrait:min-w-[2.75rem] transition-all duration-100 hover:scale-105"
-            @click="removeTeam(team.id)"
-            aria-label="Hapus tim"
-          >
-            &#10006;
-          </button>
-        </div>
-
-        <!-- Score on top (full card width), buttons in a row at the bottom -->
-        <div class="flex flex-col flex-1 min-h-0 gap-2">
-          <transition name="bounce" mode="out-in">
-            <div
-              :key="team.score"
-              class="text-black font-bold tabular-nums leading-none subpixel-antialiased flex-1 min-w-0 flex items-center justify-center whitespace-nowrap overflow-hidden text-ellipsis py-2 min-h-[4.5rem] text-[clamp(2rem,14cqw,6rem)]"
-              aria-live="polite"
-            >
-              <span v-if="leaders.includes(team.id)" aria-hidden="true">👑&nbsp;</span>{{ Math.round(team.displayScore ?? team.score) }}
-            </div>
-          </transition>
-
-          <div class="flex gap-2 w-full">
-            <button
-              v-if="globalScores.score1 !== 0"
-              @click="changeScore(team.id, globalScores.score1)"
-              class="flex-1 bg-green-500 text-white text-base font-bold px-2 py-1 min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation"
-            >
-              {{ globalScores.score1 >= 0 ? '+' : '' }}{{ globalScores.score1 }}
-            </button>
-
-            <button
-              v-if="globalScores.score2 !== 0"
-              @click="changeScore(team.id, globalScores.score2)"
-              class="flex-1 bg-blue-500 text-white text-base font-bold px-2 py-1 min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation"
-            >
-              {{ globalScores.score2 >= 0 ? '+' : '' }}{{ globalScores.score2 }}
-            </button>
-
-            <button
-              v-if="globalScores.score3 !== 0"
-              @click="changeScore(team.id, globalScores.score3)"
-              class="flex-1 bg-yellow-500 text-white text-base font-bold px-2 py-1 min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation"
-            >
-              {{ globalScores.score3 >= 0 ? '+' : '' }}{{ globalScores.score3 }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </transition-group>
+        <TeamCard
+          v-for="team in teams"
+          :key="team.id"
+          :team="team"
+          :score-buttons="scoreButtons"
+          :is-leader="leaders.includes(team.id)"
+          :is-presenting="isPresenting"
+          @score="changeScore"
+          @remove="removeTeam"
+          @rename="renameTeam"
+        />
+      </transition-group>
     </div>
   </div>
 </template>
 
 <script>
-import confetti from 'canvas-confetti'
-import { animate, stagger } from 'animejs'
+import AppToolbar from './AppToolbar.vue'
+import CountdownOverlay from './CountdownOverlay.vue'
+import HistoryPanel from './HistoryPanel.vue'
+import LeaderBanner from './LeaderBanner.vue'
+import MiniControls from './MiniControls.vue'
+import SettingsPanel from './SettingsPanel.vue'
+import TeamCard from './TeamCard.vue'
 
-const STORAGE_KEY = 'cc-scoreboard-v1'
-const MAX_HISTORY = 200
+import { MAX_HISTORY, MAX_MINUTES, MAX_SECONDS, MOTION, TIMER_DEFAULTS } from '../config'
+import {
+  applyAppearance,
+  COLOR_FIELDS,
+  onSystemThemeChange,
+  resolveColors,
+  sanitizeAppearance,
+  THEME_CHOICES
+} from '../lib/appearance'
+import { applyBranding, sanitizeBranding } from '../lib/branding'
+import { createMotion } from '../lib/motion'
+import { createScoreButton, moveScoreButton, normalizeScoreButtons } from '../lib/scoreButtons'
+import { createSfx } from '../lib/sfx'
+import { readSnapshot, saveSnapshot } from '../lib/storage'
+import { uid } from '../lib/uid'
 
-// One running score tween per team so rapid clicks retarget instead of stacking
-const scoreAnims = new Map()
-
-// Shared WebAudio context + decoded buffers so SFX play instantly.
-// Files are fetched + decoded once at startup; HTMLAudio stays as fallback.
-let sharedAudioCtx = null
-const audioBuffers = {}
-
-function prefersReducedMotion() {
-  return (
-    typeof window !== 'undefined' &&
-    !!window.matchMedia &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  )
-}
-
-function uid() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
-}
+// Kept outside the component so Vue never proxies the WebAudio context or the tween map.
+const sfx = createSfx()
+const motion = createMotion()
 
 export default {
+  name: 'Scoreboard',
+  components: {
+    AppToolbar,
+    CountdownOverlay,
+    HistoryPanel,
+    LeaderBanner,
+    MiniControls,
+    SettingsPanel,
+    TeamCard
+  },
   data() {
     return {
       title: '',
       teams: [],
-      globalScores: {
-        score1: 100,
-        score2: -50,
-        score3: 50
-      },
+      scoreButtons: normalizeScoreButtons(),
+      branding: sanitizeBranding(),
+      appearance: sanitizeAppearance(),
       history: [],
       redoStack: [],
       isPanelOpen: false,
       isHistoryOpen: false,
       isPresenting: false,
       isMuted: false,
-      minutes: 0,
-      seconds: 5,
+      minutes: TIMER_DEFAULTS.minutes,
+      seconds: TIMER_DEFAULTS.seconds,
       originalMinutes: 0,
       originalSeconds: 0,
       isCountingDown: false,
       isPaused: false,
       countdown: null,
-      backgroundColorClass: '',
-      alarm: null,
-      tick: null,
-      correct: null
+      isFlashing: false,
+      saveTimer: null,
+      stopWatchingSystemTheme: null
     }
   },
   computed: {
@@ -447,11 +238,35 @@ export default {
     },
     historyReversed() {
       return [...this.history].reverse()
+    },
+    resolvedColors() {
+      return resolveColors(this.appearance)
+    },
+    colorFields() {
+      return COLOR_FIELDS
+    },
+    themeChoices() {
+      return THEME_CHOICES
     }
   },
   watch: {
     title() {
+      this.syncBranding()
       this.save()
+    },
+    branding: {
+      deep: true,
+      handler() {
+        this.syncBranding()
+        this.save()
+      }
+    },
+    appearance: {
+      deep: true,
+      handler() {
+        this.syncLook()
+        this.save()
+      }
     },
     teams: {
       deep: true,
@@ -459,7 +274,7 @@ export default {
         this.save()
       }
     },
-    globalScores: {
+    scoreButtons: {
       deep: true,
       handler() {
         this.save()
@@ -468,53 +283,50 @@ export default {
   },
   mounted() {
     this.load()
-    this.initAudio()
+    this.syncLook()
+    sfx.init()
     window.addEventListener('keydown', this.handleKeydown)
+    window.addEventListener('beforeunload', this.flushSave)
     this.animateEntrance()
+    this.stopWatchingSystemTheme = onSystemThemeChange(this.handleSystemThemeChange)
   },
   beforeUnmount() {
     this.stopTicking()
     window.removeEventListener('keydown', this.handleKeydown)
+    window.removeEventListener('beforeunload', this.flushSave)
+    this.stopWatchingSystemTheme?.()
+    this.flushSave()
   },
   methods: {
     // ---------- persistence ----------
+    // localStorage writes are synchronous, and the appearance slider fires on every
+    // frame of a drag — so coalesce bursts of watcher calls into one write.
     save() {
-      try {
-        const payload = {
-          v: 1,
-          title: this.title,
-          teams: this.teams.map((t) => ({ id: t.id, name: t.name, score: t.score })),
-          globalScores: this.globalScores,
-          history: this.history.slice(-MAX_HISTORY),
-          minutes: this.minutes,
-          seconds: this.seconds,
-          isMuted: this.isMuted
-        }
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
-      } catch {
-        // storage full / private mode — scoreboard keeps working in-memory
-      }
+      clearTimeout(this.saveTimer)
+      this.saveTimer = setTimeout(this.flushSave, 150)
+    },
+    flushSave() {
+      clearTimeout(this.saveTimer)
+      this.saveTimer = null
+      saveSnapshot(this)
     },
     load() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY)
-        if (!raw) {
-          this.isPanelOpen = true
-          return
-        }
-        const data = JSON.parse(raw)
-        this.title = data.title ?? ''
-        this.teams = (data.teams ?? []).map((t) => ({ ...t, lastChange: 0, displayScore: t.score }))
-        this.globalScores = { score1: 100, score2: -50, score3: 50, ...(data.globalScores ?? {}) }
-        this.history = data.history ?? []
-        if (typeof data.minutes === 'number') this.minutes = data.minutes
-        if (typeof data.seconds === 'number') this.seconds = data.seconds
-        if (typeof data.isMuted === 'boolean') this.isMuted = data.isMuted
-        // Don't cover the board with settings when there's already a saved game
-        this.isPanelOpen = this.teams.length === 0
-      } catch {
+      const snapshot = readSnapshot()
+      if (!snapshot) {
         this.isPanelOpen = true
+        return
       }
+      this.title = snapshot.title
+      this.teams = snapshot.teams
+      this.scoreButtons = snapshot.scoreButtons
+      this.branding = snapshot.branding
+      this.appearance = snapshot.appearance
+      this.history = snapshot.history
+      this.minutes = snapshot.minutes
+      this.seconds = snapshot.seconds
+      this.isMuted = snapshot.isMuted
+      // Don't cover the board with settings when there's already a saved game
+      this.isPanelOpen = this.teams.length === 0
     },
     pushHistory(entry) {
       this.history.push({ id: uid(), at: Date.now(), ...entry })
@@ -524,6 +336,65 @@ export default {
       // any new action invalidates the redo stack
       this.redoStack = []
       this.save()
+    },
+
+    // ---------- branding & appearance ----------
+    syncBranding() {
+      applyBranding({ branding: this.branding, title: this.title })
+    },
+    syncLook() {
+      applyAppearance(this.appearance)
+    },
+    handleSystemThemeChange() {
+      if (this.appearance.theme === 'auto') this.syncLook()
+    },
+    updateBranding({ key, value }) {
+      // Assigned raw (not re-sanitized) so partially-typed values survive each keystroke;
+      // sanitizeBranding() runs on load instead.
+      this.branding = { ...this.branding, [key]: value }
+    },
+    resetBranding() {
+      this.branding = sanitizeBranding()
+    },
+    setTheme(theme) {
+      this.appearance = sanitizeAppearance({ ...this.appearance, theme })
+    },
+    setColorOverride({ key, value }) {
+      const overrides = { ...this.appearance.overrides, [key]: value }
+      this.appearance = sanitizeAppearance({ ...this.appearance, overrides })
+    },
+    clearColorOverride(key) {
+      const overrides = { ...this.appearance.overrides }
+      delete overrides[key]
+      this.appearance = sanitizeAppearance({ ...this.appearance, overrides })
+    },
+    setScoreScale(value) {
+      this.appearance = sanitizeAppearance({ ...this.appearance, scoreScale: value })
+    },
+    resetAppearance() {
+      this.appearance = sanitizeAppearance()
+    },
+
+    // ---------- score buttons ----------
+    addScoreButton() {
+      this.scoreButtons = [...this.scoreButtons, createScoreButton(this.scoreButtons)]
+    },
+    removeScoreButton(index) {
+      if (this.scoreButtons.length <= 1) return
+      this.scoreButtons = this.scoreButtons.filter((_, i) => i !== index)
+    },
+    moveButton({ index, delta }) {
+      this.scoreButtons = moveScoreButton(this.scoreButtons, index, index + delta)
+    },
+    updateButton({ index, patch }) {
+      const next = this.scoreButtons.map((button, i) => {
+        if (i !== index) return button
+        return normalizeScoreButtons([{ ...button, ...patch }])[0]
+      })
+      this.scoreButtons = next
+    },
+    resetScoreButtons() {
+      this.scoreButtons = normalizeScoreButtons()
     },
 
     // ---------- teams ----------
@@ -537,8 +408,7 @@ export default {
       const index = this.teams.findIndex((t) => t.id === teamId)
       if (index === -1) return
       const [removed] = this.teams.splice(index, 1)
-      scoreAnims.get(teamId)?.cancel()
-      scoreAnims.delete(teamId)
+      motion.cancelTeam(teamId)
       this.pushHistory({
         type: 'remove',
         teamId: removed.id,
@@ -551,6 +421,10 @@ export default {
         index
       })
     },
+    renameTeam(teamId, name) {
+      const team = this.teams.find((t) => t.id === teamId)
+      if (team) team.name = name
+    },
     changeScore(teamId, amount) {
       const team = this.teams.find((t) => t.id === teamId)
       if (!team || typeof amount !== 'number' || Number.isNaN(amount)) return
@@ -559,8 +433,8 @@ export default {
       team.score = nextScore
       team.lastChange = amount
       // v1 behavior: correct.wav on +, buzzer on − (wrong.wav was never wired up)
-      this.playBuffered(amount >= 0 ? 'correct' : 'alarm', amount >= 0 ? this.correct : this.alarm)
-      this.tweenScore(team, nextScore)
+      sfx.play(amount >= 0 ? 'correct' : 'alarm', { isMuted: this.isMuted })
+      motion.tweenScore(team, nextScore)
       this.pushHistory({
         type: 'score',
         teamId: team.id,
@@ -572,32 +446,10 @@ export default {
       // capture the object, not the index — safe if the team is removed mid-timeout
       setTimeout(() => {
         team.lastChange = 0
-      }, 400)
+      }, MOTION.scoreFlash)
     },
 
     // ---------- history / undo ----------
-    describeEntry(entry) {
-      const name = (entry.teamName ?? entry.team?.name ?? '').trim() || 'Tim tanpa nama'
-      switch (entry.type) {
-        case 'score':
-          return `${name}: ${entry.amount >= 0 ? '+' : ''}${entry.amount} (${entry.prevScore} → ${entry.nextScore})`
-        case 'add':
-          return `Menambah ${((entry.team?.name ?? '')).trim() || 'tim baru'}`
-        case 'remove':
-          return `Menghapus ${name} (${entry.team?.score ?? 0} poin)`
-        case 'reset':
-          return `Menghapus ${(entry.teams ?? []).length} tim`
-        default:
-          return 'Mengubah papan skor'
-      }
-    },
-    formatEntryTime(at) {
-      try {
-        return new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      } catch {
-        return ''
-      }
-    },
     undo() {
       const entry = this.history.pop()
       if (!entry) return
@@ -608,10 +460,10 @@ export default {
           if (team) {
             team.score = entry.prevScore
             team.lastChange = -entry.amount
-            this.tweenScore(team, entry.prevScore)
+            motion.tweenScore(team, entry.prevScore)
             setTimeout(() => {
               team.lastChange = 0
-            }, 400)
+            }, MOTION.scoreFlash)
           } else {
             // team was deleted after scoring — bring it back so undo is lossless
             this.teams.push({
@@ -654,10 +506,10 @@ export default {
           if (team) {
             team.score = entry.nextScore
             team.lastChange = entry.amount
-            this.tweenScore(team, entry.nextScore)
+            motion.tweenScore(team, entry.nextScore)
             setTimeout(() => {
               team.lastChange = 0
-            }, 400)
+            }, MOTION.scoreFlash)
           } else {
             this.teams.push({
               id: entry.teamId,
@@ -738,170 +590,49 @@ export default {
         this.isHistoryOpen = false
       }
     },
-    // ---------- anime.js motion ----------
-    highlightBackground(colorClass) {
-      this.backgroundColorClass = colorClass + ' bg-transition'
-      setTimeout(() => {
-        this.backgroundColorClass = 'bg-transition'
-      }, 500)
-    },
-    celebrateWinner() {
-      const fire = (opts) => {
-        try {
-          confetti(opts)
-        } catch {
-          // confetti needs a canvas-capable browser; scoreboard keeps working without it
-        }
-      }
-      fire({ particleCount: 120, spread: 75, origin: { y: 0.6 } })
-      setTimeout(() => fire({ particleCount: 80, angle: 60, spread: 60, origin: { x: 0 } }), 150)
-      setTimeout(() => fire({ particleCount: 80, angle: 120, spread: 60, origin: { x: 1 } }), 300)
-      if (!this.leaders.length || prefersReducedMotion()) return
-      const cards = this.leaders
-        .map((id) => this.$el.querySelector(`[data-team-id="${id}"]`))
-        .filter(Boolean)
-      if (!cards.length) return
-      animate(cards, {
-        scale: [1, 1.08, 1],
-        duration: 600,
-        delay: stagger(120),
-        ease: 'inOutQuad'
-      })
-    },
-    // ---------- anime.js motion ----------
-    tweenScore(team, to) {
-      scoreAnims.get(team.id)?.cancel()
-      scoreAnims.delete(team.id)
-      if (prefersReducedMotion()) {
-        team.displayScore = to
-        return
-      }
-      // anime mutates the reactive property each tick — Vue re-renders the count
-      scoreAnims.set(
-        team.id,
-        animate(team, {
-          displayScore: to,
-          duration: 600,
-          ease: 'outExpo'
-        })
-      )
-    },
-    popCard(teamId) {
-      if (prefersReducedMotion()) return
-      const el = this.$el.querySelector(`[data-team-id="${teamId}"]`)
-      if (!el) return
-      // CSS fade handles opacity concurrently; anime owns the springy scale
-      animate(el, { scale: [0.6, 1], duration: 500, ease: 'outBack' })
-    },
-    animateEntrance() {
-      // initial render has no CSS enter transition (no `appear`), so anime owns it
-      if (!this.teams.length || prefersReducedMotion()) return
-      animate(this.$el.querySelectorAll('.team-card'), {
-        opacity: [0, 1],
-        translateY: [24, 0],
-        delay: stagger(90),
-        duration: 500,
-        ease: 'outExpo'
-      })
-    },
-
-    // ---------- timer ----------
-    initAudio() {
-      try {
-        // import.meta.env.BASE_URL has no trailing slash on prod
-        // (e.g. "/cerdas-cermat-scoreboard"), so normalize before joining.
-        const rawBase = import.meta.env.BASE_URL || '/'
-        const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`
-        this.alarm = new Audio(`${base}buzz.wav`)
-        this.tick = new Audio(`${base}tick.wav`)
-        this.correct = new Audio(`${base}correct.wav`)
-        this.alarm.preload = 'auto'
-        this.tick.preload = 'auto'
-        this.correct.preload = 'auto'
-        this.preloadBuffers(base)
-      } catch {
-        this.alarm = null
-        this.tick = null
-        this.correct = null
-      }
-    },
-    testSound() {
-      // explicit sound check — plays even when muted
-      this.playBuffered('tick', this.tick, true)
-    },
     toggleMute() {
       this.isMuted = !this.isMuted
       this.save()
     },
-    safePlay(audio) {
-      if (!audio || this.isMuted) return
-      try {
-        audio.currentTime = 0
-        const p = audio.play()
-        if (p && typeof p.catch === 'function') p.catch(() => {})
-      } catch {
-        // autoplay blocked — timer still runs visually
-      }
+    testSound() {
+      // explicit sound check — plays even when muted
+      sfx.play('tick', { isMuted: this.isMuted, force: true })
     },
-    ensureAudioCtx() {
-      try {
-        if (!sharedAudioCtx) {
-          const AC = window.AudioContext || window.webkitAudioContext
-          if (!AC) return null
-          sharedAudioCtx = new AC()
-        }
-        return sharedAudioCtx
-      } catch {
-        return null
-      }
+
+    // ---------- motion ----------
+    flashBackground() {
+      this.isFlashing = true
+      setTimeout(() => {
+        this.isFlashing = false
+      }, MOTION.flash)
     },
-    preloadBuffers(base) {
-      const ctx = this.ensureAudioCtx()
-      if (!ctx) return
-      const jobs = { correct: 'correct.wav', alarm: 'buzz.wav', tick: 'tick.wav' }
-      for (const [key, file] of Object.entries(jobs)) {
-        if (audioBuffers[key]) continue
-        fetch(`${base}${file}`)
-          .then((r) => {
-            if (!r.ok) throw new Error('sfx missing')
-            return r.arrayBuffer()
-          })
-          .then((buf) => ctx.decodeAudioData(buf))
-          .then((decoded) => {
-            audioBuffers[key] = decoded
-          })
-          .catch(() => {
-            // keep HTMLAudio fallback
-          })
-      }
+    celebrateWinner() {
+      motion.fireConfetti()
+      const cards = this.leaders.map((id) => this.cardElement(id)).filter(Boolean)
+      motion.pulseCards(cards)
     },
-    playBuffered(key, fallback, force = false) {
-      if (this.isMuted && !force) return
-      const ctx = this.ensureAudioCtx()
-      const buf = audioBuffers[key]
-      if (buf && ctx) {
-        try {
-          if (ctx.state === 'suspended') ctx.resume().catch(() => {})
-          const src = ctx.createBufferSource()
-          src.buffer = buf
-          src.connect(ctx.destination)
-          src.start(0)
-          return
-        } catch {
-          // fall through to HTMLAudio
-        }
-      }
-      if (force && fallback) {
-        try {
-          fallback.currentTime = 0
-          const p = fallback.play()
-          if (p && typeof p.catch === 'function') p.catch(() => {})
-        } catch {
-          // audio unavailable — board keeps working
-        }
-        return
-      }
-      this.safePlay(fallback)
+    cardElement(teamId) {
+      return this.$refs.teamGrid?.querySelector(`[data-team-id="${teamId}"]`) ?? null
+    },
+    popCard(teamId) {
+      motion.popCard(this.cardElement(teamId))
+    },
+    animateEntrance() {
+      motion.animateEntrance(this.$refs.teamGrid?.querySelectorAll('.team-card'))
+    },
+
+    // ---------- timer ----------
+    // Only coerce non-numeric input here; clamping happens in normalizeTimer() so that
+    // typing "65" into the seconds field is not fought mid-keystroke.
+    setMinutes(value) {
+      this.minutes = Number.isFinite(value) ? Math.floor(value) : 0
+    },
+    setSeconds(value) {
+      this.seconds = Number.isFinite(value) ? Math.floor(value) : 0
+    },
+    normalizeTimer() {
+      this.setMinutes(Math.min(Math.max(0, this.minutes), MAX_MINUTES))
+      this.setSeconds(Math.min(Math.max(0, this.seconds), MAX_SECONDS))
     },
     stopTicking() {
       if (this.countdown) {
@@ -911,32 +642,29 @@ export default {
     },
     startCountdown() {
       this.stopTicking()
-      if (!this.minutes) this.minutes = 0
-      if (!this.seconds) this.seconds = 0
-      this.minutes = Math.max(0, Math.floor(this.minutes))
-      this.seconds = Math.max(0, Math.min(59, Math.floor(this.seconds)))
+      this.normalizeTimer()
       if (this.minutes === 0 && this.seconds === 0) return
 
       this.originalMinutes = this.minutes
       this.originalSeconds = this.seconds
       this.isCountingDown = true
       this.isPaused = false
-      this.playBuffered('tick', this.tick)
+      sfx.play('tick', { isMuted: this.isMuted })
       this.countdown = setInterval(this.tickOnce, 1000)
       this.save()
     },
     tickOnce() {
       if (this.seconds === 1 && this.minutes === 0) {
         this.seconds = 0
-        this.playBuffered('alarm', this.alarm)
+        sfx.play('alarm', { isMuted: this.isMuted })
         this.stopTicking()
         this.isCountingDown = false
         this.isPaused = false
-        this.highlightBackground('bg-red-500')
+        this.flashBackground()
         this.minutes = this.originalMinutes
         this.seconds = this.originalSeconds
       } else {
-        this.playBuffered('tick', this.tick)
+        sfx.play('tick', { isMuted: this.isMuted })
         if (this.seconds === 0) {
           this.minutes--
           this.seconds = 59
@@ -964,7 +692,13 @@ export default {
     },
     resetAll() {
       if (!this.teams.length) return
-      if (!window.confirm(`Hapus semua ${this.teams.length} tim? Anda bisa mengurungkan tepat setelah ini.`)) return
+      if (
+        !window.confirm(
+          `Hapus semua ${this.teams.length} tim? Anda bisa mengurungkan tepat setelah ini.`
+        )
+      ) {
+        return
+      }
       this.stopTicking()
       this.isCountingDown = false
       this.isPaused = false
@@ -974,91 +708,12 @@ export default {
         score: t.score,
         displayScore: t.displayScore ?? t.score
       }))
-      for (const t of this.teams) {
-        scoreAnims.get(t.id)?.cancel()
-        scoreAnims.delete(t.id)
-      }
+      motion.cancelAll(this.teams.map((t) => t.id))
       this.teams = []
-      this.minutes = 0
-      this.seconds = 5
+      this.minutes = TIMER_DEFAULTS.minutes
+      this.seconds = TIMER_DEFAULTS.seconds
       this.pushHistory({ type: 'reset', teams: snapshot })
     }
   }
 }
 </script>
-
-<style scoped>
-/* Card is a size container so the score font (cqw units) scales with card width */
-.team-card {
-  container-type: inline-size;
-}
-
-.fade-enter-active {
-  transition: opacity 0.5s ease;
-}
-
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.bounce-enter-active {
-  animation: bounce-in 0.5s;
-}
-
-.bounce-leave-active {
-  animation: bounce-out 0.1s;
-}
-
-.bg-transition {
-  transition: background-color 0.5s ease;
-}
-
-/* Countdown animation */
-.animate-pulse {
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-
-  10% {
-    transform: scale(2);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes bounce-in {
-  0% {
-    transform: scale(0.5);
-  }
-
-  50% {
-    transform: scale(1.2);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes bounce-out {
-  0% {
-    transform: scale(1);
-  }
-
-  100% {
-    transform: scale(0.5);
-    opacity: 0;
-  }
-}
-</style>

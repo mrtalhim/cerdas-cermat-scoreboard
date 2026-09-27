@@ -7,10 +7,13 @@ A no-nonsense scoreboard app built with Vue 3 and Tailwind CSS. Manage teams, sc
 - **Teams**: add / remove / rename teams, scores update with flash + bounce animations.
 - **Animated scores**: numbers count up/down via Anime.js (`outExpo`), new cards spring in (`outBack`), board cascades in with a stagger on load, leaders pulse on celebration. Honors `prefers-reduced-motion` (values snap instantly).
 - **History + undo**: every score change, add, remove, and clear-all is logged. Undo (`Ctrl+Z`), redo (`Ctrl+Shift+Z` / `Ctrl+Y`), per-event log with timestamps, clear-history with confirm. "Clear All Teams" is itself undoable.
-- **Persistence**: title, teams, score-button settings, timer defaults, and history survive a page refresh via `localStorage` (`cc-scoreboard-v1`). Safe to refresh mid-show.
+- **Persistence**: title, teams, score buttons, branding, appearance, timer defaults, and history survive a page refresh via `localStorage` (`cc-scoreboard-v2`, migrated automatically from `-v1`). Safe to refresh mid-show.
 - **Timer**: minutes/seconds input, pause / resume / reset, tick + buzzer sounds, red flash when time is up.
 - **Winner celebration**: 👑 leader detection (hidden on ties / fresh board) with `canvas-confetti` shower via the 🎉 Winner button.
 - **Leader highlight**: current leader card gets an amber ring + crown.
+- **Flexible score buttons**: add, remove, reorder, rename, recolor, and revalue the score buttons (up to 6). A value of `0` hides its button.
+- **Appearance**: light / dark / auto theme, plus overridable accent, card, leader and board colors, and a score-size slider.
+- **Branding**: app name, default title, description, browser theme color, and an optional logo shown in the header — all reflected in `<title>` and the social meta tags.
 
 ## Getting started
 
@@ -42,8 +45,8 @@ Other scripts:
 ## Usage
 
 - **Title**: edit the big input at the top — it auto-saves.
-- **Setting**: adjust the three global score buttons (set one to `0` to hide it), or clear all teams.
-- **Scoring**: `+100` / `-50` / `+50` buttons per team (configurable). Scores flash green/red.
+- **Settings** (⚙️): four tabs — *Skor* (score buttons), *Tampilan* (theme, colors, score size), *Identitas* (app name, title, description, theme color, logo URL), *Umum* (clear teams, test sound).
+- **Scoring**: `+100` / `-50` / `+50` buttons per team by default, editable to up to 6. Scores flash green/red.
 - **History**: button with a count badge opens the log panel. Undo/redo work from the toolbar, the panel, or the keyboard.
 - **Timer**: enter minutes + seconds, press Timer. Pause/Resume/Reset from the overlay. `Esc` closes panels.
 - **Winner**: press 🎉 Winner to shower confetti over the current leader.
@@ -58,9 +61,19 @@ Keyboard shortcuts (ignored while typing in an input):
 
 ## Project structure
 
-- `src/components/Scoreboard.vue` — the whole board (state, history, timer, persistence).
+- `src/config.js` — every default in one place: storage keys, branding, appearance, score-button palette, SFX filenames, motion timings.
+- `src/lib/` — framework-free logic: `scoreButtons` (normalize/migrate/reorder), `storage` (v1→v2 migration), `appearance` (theme + CSS variable application), `branding` (document head), `sfx` (WebAudio + HTMLAudio), `motion` (anime.js + confetti), `historyLog`, `uid`.
+- `src/components/Scoreboard.vue` — orchestrator: owns the state, wires the children, keeps undo/redo and the timer.
+- `src/components/` — `TeamCard`, `AppToolbar`, `MiniControls`, `LeaderBanner`, `SettingsPanel`, `HistoryPanel`, `CountdownOverlay` (props + emits only).
+- `src/assets/base.css` — the `--cc-*` design tokens plus the transitions shared across components.
 - `src/App.vue` — renders `Scoreboard` directly (no router; single-screen app).
-- `public/buzz.wav`, `public/tick.wav` — timer sounds, loaded relative to `import.meta.env.BASE_URL` so they work under the `/cerdas-cermat-scoreboard` base path.
+- `public/*.wav` — sounds, loaded relative to `import.meta.env.BASE_URL` so they work under the `/cerdas-cermat-scoreboard` base path.
+
+### Customizing
+
+- **Score buttons, defaults, sounds** — edit `src/config.js`.
+- **Colors** — either pick them at runtime under *Settings → Tampilan* (stored per device) or change the token defaults in `src/assets/base.css` and the `cc.*` aliases in `tailwind.config.js`.
+- **Page head / favicon** — `index.html` holds the static defaults; the saved branding settings overwrite `<title>`, `theme-color`, and the `og:*` tags at runtime. Drop a replacement `public/favicon.svg` in place.
 
 ## Deploy
 
