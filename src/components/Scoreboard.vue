@@ -360,6 +360,11 @@ const MAX_HISTORY = 200
 // One running score tween per team so rapid clicks retarget instead of stacking
 const scoreAnims = new Map()
 
+// Shared WebAudio context + decoded buffers so SFX play instantly.
+// Files are fetched + decoded once at startup; HTMLAudio stays as fallback.
+let sharedAudioCtx = null
+const audioBuffers = {}
+
 function prefersReducedMotion() {
   return (
     typeof window !== 'undefined' &&
@@ -554,7 +559,7 @@ export default {
       team.score = nextScore
       team.lastChange = amount
       // v1 behavior: correct.wav on +, buzzer on − (wrong.wav was never wired up)
-      this.safePlay(amount >= 0 ? this.correct : this.alarm)
+      this.playBuffered(amount >= 0 ? 'correct' : 'alarm', amount >= 0 ? this.correct : this.alarm)
       this.tweenScore(team, nextScore)
       this.pushHistory({
         type: 'score',
@@ -813,6 +818,7 @@ export default {
         this.alarm.preload = 'auto'
         this.tick.preload = 'auto'
         this.correct.preload = 'auto'
+        this.preloadBuffers(base)
       } catch {
         this.alarm = null
         this.tick = null
@@ -821,15 +827,7 @@ export default {
     },
     testSound() {
       // explicit sound check — plays even when muted
-      const audio = this.tick
-      if (!audio) return
-      try {
-        audio.currentTime = 0
-        const p = audio.play()
-        if (p && typeof p.catch === 'function') p.catch(() => {})
-      } catch {
-        // audio unavailable — board keeps working
-      }
+      this.playBuffered('tick', this.tick, true)
     },
     toggleMute() {
       this.isMuted = !this.isMuted
@@ -844,6 +842,66 @@ export default {
       } catch {
         // autoplay blocked — timer still runs visually
       }
+    },
+    ensureAudioCtx() {
+      try {
+        if (!sharedAudioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext
+          if (!AC) return null
+          sharedAudioCtx = new AC()
+        }
+        return sharedAudioCtx
+      } catch {
+        return null
+      }
+    },
+    preloadBuffers(base) {
+      const ctx = this.ensureAudioCtx()
+      if (!ctx) return
+      const jobs = { correct: 'correct.wav', alarm: 'buzz.wav', tick: 'tick.wav' }
+      for (const [key, file] of Object.entries(jobs)) {
+        if (audioBuffers[key]) continue
+        fetch(`${base}${file}`)
+          .then((r) => {
+            if (!r.ok) throw new Error('sfx missing')
+            return r.arrayBuffer()
+          })
+          .then((buf) => ctx.decodeAudioData(buf))
+          .then((decoded) => {
+            audioBuffers[key] = decoded
+          })
+          .catch(() => {
+            // keep HTMLAudio fallback
+          })
+      }
+    },
+    playBuffered(key, fallback, force = false) {
+      if (this.isMuted && !force) return
+      const ctx = this.ensureAudioCtx()
+      const buf = audioBuffers[key]
+      if (buf && ctx) {
+        try {
+          if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+          const src = ctx.createBufferSource()
+          src.buffer = buf
+          src.connect(ctx.destination)
+          src.start(0)
+          return
+        } catch {
+          // fall through to HTMLAudio
+        }
+      }
+      if (force && fallback) {
+        try {
+          fallback.currentTime = 0
+          const p = fallback.play()
+          if (p && typeof p.catch === 'function') p.catch(() => {})
+        } catch {
+          // audio unavailable — board keeps working
+        }
+        return
+      }
+      this.safePlay(fallback)
     },
     stopTicking() {
       if (this.countdown) {
@@ -863,14 +921,14 @@ export default {
       this.originalSeconds = this.seconds
       this.isCountingDown = true
       this.isPaused = false
-      this.safePlay(this.tick)
+      this.playBuffered('tick', this.tick)
       this.countdown = setInterval(this.tickOnce, 1000)
       this.save()
     },
     tickOnce() {
       if (this.seconds === 1 && this.minutes === 0) {
         this.seconds = 0
-        this.safePlay(this.alarm)
+        this.playBuffered('alarm', this.alarm)
         this.stopTicking()
         this.isCountingDown = false
         this.isPaused = false
@@ -878,7 +936,7 @@ export default {
         this.minutes = this.originalMinutes
         this.seconds = this.originalSeconds
       } else {
-        this.safePlay(this.tick)
+        this.playBuffered('tick', this.tick)
         if (this.seconds === 0) {
           this.minutes--
           this.seconds = 59
