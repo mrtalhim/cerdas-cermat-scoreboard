@@ -72,13 +72,29 @@
               />
             </div>
             <div class="flex flex-row items-center gap-1.5">
+              <input
+                type="color"
+                :value="inkSwatch(button)"
+                :title="`Warna teks tombol ${index + 1} (${inkLabel(button)})`"
+                :aria-label="`Warna teks tombol skor ${index + 1}`"
+                class="w-8 h-8 shrink-0 rounded border cursor-pointer bg-white"
+                @input="patchButton(index, { textColor: pickInk($event.target.value) })"
+              />
+              <button
+                @click="patchButton(index, { textColor: '' })"
+                :disabled="!button.textColor"
+                class="px-2 py-1 rounded-lg bg-gray-300 dark:bg-slate-600 text-xs disabled:opacity-40 touch-manipulation min-h-[2rem] min-w-[2rem] shrink-0"
+                title="Biarkan otomatis (pilih hitam atau putih yang paling kontras)"
+              >
+                &#8635;
+              </button>
               <button
                 :class="[
                   'flex-1 min-w-0 truncate text-sm font-bold px-2 py-1 rounded-lg',
                   buttonSwatch(button).bg,
-                  buttonSwatch(button).ink
+                  buttonInkClass(button)
                 ]"
-                :style="buttonStyle(button.color)"
+                :style="[buttonStyle(button.color), buttonInkStyle(button)]"
                 disabled
               >
                 {{ previewText(button) }}
@@ -387,12 +403,17 @@
 import { BACKGROUND_DIM_RANGE, MAX_SCORE_BUTTONS, SCORE_SCALE_RANGE } from '../config'
 import { formatBytes } from '../lib/image'
 import {
+  buttonInkClass,
+  buttonInkStyle,
   buttonStyle,
   buttonSwatch,
   buttonText,
   isButtonVisible,
-  matchColorKey
+  matchColorKey,
+  matchInkKey,
+  normalizeTextColor
 } from '../lib/scoreButtons'
+import { isHexColor } from '../lib/branding'
 
 const TABS = ['Skor', 'Tampilan', 'Latar', 'Identitas', 'Umum']
 
@@ -462,13 +483,31 @@ export default {
     }
   },
   methods: {
+    buttonInkClass,
+    buttonInkStyle,
     buttonStyle,
     buttonSwatch,
     buttonText,
     // The live preview doubles as the "value 0 hides this" signal, and makes an
     // invisible-button regression obvious without having to open a team card.
     previewText(button) {
-      return isButtonVisible(button) ? buttonText(button) : ' disembunyikan'
+      return isButtonVisible(button) ? buttonText(button) : 'disembunyikan'
+    },
+    inkSwatch(button) {
+      const choice = normalizeTextColor(button.textColor)
+      if (choice === 'white') return '#ffffff'
+      if (choice === 'black') return '#000000'
+      if (isHexColor(choice)) return choice
+      return buttonInkClass(button) === 'text-white' ? '#ffffff' : '#000000'
+    },
+    inkLabel(button) {
+      if (!button.textColor) return 'otomatis'
+      return button.textColor === 'white' || button.textColor === 'black'
+        ? button.textColor
+        : 'kustom'
+    },
+    pickInk(hex) {
+      return matchInkKey(hex) ?? hex
     },
     pickFile(event) {
       const [file] = event.target.files ?? []

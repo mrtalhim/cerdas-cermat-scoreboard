@@ -44,9 +44,9 @@
           :class="[
             'flex-1 basis-[4rem] min-w-[4rem] text-base font-bold px-2 py-1 min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation',
             buttonSwatch(button).bg,
-            buttonSwatch(button).ink
+            buttonInkClass(button)
           ]"
-          :style="buttonStyle(button.color)"
+          :style="[buttonStyle(button.color), buttonInkStyle(button)]"
           :title="`${buttonSwatch(button).label} · ${buttonText(button)}`"
           :aria-label="`Tambah ${buttonText(button)} poin`"
           @click="$emit('score', team.id, button.value)"
@@ -59,7 +59,14 @@
 </template>
 
 <script>
-import { buttonStyle, buttonSwatch, buttonText, isButtonVisible } from '../lib/scoreButtons'
+import {
+  buttonInkClass,
+  buttonInkStyle,
+  buttonStyle,
+  buttonSwatch,
+  buttonText,
+  isButtonVisible
+} from '../lib/scoreButtons'
 
 export default {
   name: 'TeamCard',
@@ -90,6 +97,8 @@ export default {
     }
   },
   methods: {
+    buttonInkClass,
+    buttonInkStyle,
     buttonStyle,
     buttonSwatch,
     buttonText

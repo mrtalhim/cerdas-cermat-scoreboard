@@ -11,7 +11,7 @@ A no-nonsense scoreboard app built with Vue 3 and Tailwind CSS. Manage teams, sc
 - **Timer**: minutes/seconds input, pause / resume / reset, tick + buzzer sounds, red flash when time is up.
 - **Winner celebration**: 👑 leader detection (hidden on ties / fresh board) with `canvas-confetti` shower via the 🎉 Winner button.
 - **Leader highlight**: current leader card gets an amber ring + crown.
-- **Flexible score buttons**: add, remove, reorder, rename, recolor, and revalue the score buttons (up to 6). A value of `0` hides its button.
+- **Flexible score buttons**: add, remove, reorder, rename, recolor, and revalue the score buttons (up to 6). A value of `0` hides its button. Each button has its own label-colour override, defaulting to *auto* — whichever of black/white has the better WCAG ratio against that button's own background, so labels stay readable on a projector.
 - **Appearance**: light / dark / auto theme, plus overridable accent, card, leader and board colors, and a score-size slider.
 - **Background image**: upload a photo or paste a URL under *Settings → Latar*, with a dim slider so text stays readable. Uploads are downscaled to 1920px and re-encoded as WebP/JPEG in the browser before being stored, because a raw data URL would not fit in `localStorage`.
 - **Branding**: app name, default title, description, browser theme color, and an optional logo shown in the header — all reflected in `<title>` and the social meta tags.
@@ -73,6 +73,7 @@ Keyboard shortcuts (ignored while typing in an input):
 ### Customizing
 
 - **Score buttons, defaults, sounds** — edit `src/config.js`.
+- **Label contrast** — `bestInkFor()` in `src/lib/scoreButtons.js` computes the WCAG ratio and picks black or white. The score buttons render at 16px bold, which is *below* WCAG's large-text threshold, so the bar is 4.5:1, not 3:1. Every palette entry clears it in auto mode.
 - **Colors** — either pick them at runtime under *Settings → Tampilan* (stored per device) or change the token defaults in `src/assets/base.css` and the `cc.*` aliases in `tailwind.config.js`.
 - **Background image limits** — `BACKGROUND_MAX_UPLOAD_BYTES` (8 MB) refuses oversized files before decoding, `BACKGROUND_MAX_DIMENSION` (1920px) caps the downscale, and `BACKGROUND_DIM_RANGE` sets the dim slider. Anything above `BACKGROUND_LARGE_BYTES` triggers a "use a URL instead" hint, because `localStorage` is capped at roughly 5 MB in total.
 - **Page head / favicon** — `index.html` holds the static defaults; the saved branding settings overwrite `<title>`, `theme-color`, and the `og:*` tags at runtime. Drop a replacement `public/favicon.svg` in place.

@@ -60,15 +60,15 @@ export const MAX_MINUTES = 999
  * emits classes it can find as literal strings in the source — `bg-${key}-500` is dropped.
  */
 export const SCORE_BUTTON_COLORS = {
-  green: { label: 'Hijau', bg: 'bg-green-500', ink: 'text-white', swatch: '#22c55e' },
-  blue: { label: 'Biru', bg: 'bg-blue-500', ink: 'text-white', swatch: '#3b82f6' },
-  yellow: { label: 'Kuning', bg: 'bg-yellow-500', ink: 'text-white', swatch: '#eab308' },
-  red: { label: 'Merah', bg: 'bg-red-500', ink: 'text-white', swatch: '#ef4444' },
+  green: { label: 'Hijau', bg: 'bg-green-500', ink: 'text-black', swatch: '#22c55e' },
+  blue: { label: 'Biru', bg: 'bg-blue-500', ink: 'text-black', swatch: '#3b82f6' },
+  yellow: { label: 'Kuning', bg: 'bg-yellow-500', ink: 'text-black', swatch: '#eab308' },
+  red: { label: 'Merah', bg: 'bg-red-500', ink: 'text-black', swatch: '#ef4444' },
   amber: { label: 'Amber', bg: 'bg-amber-500', ink: 'text-black', swatch: '#f59e0b' },
-  indigo: { label: 'Indigo', bg: 'bg-indigo-500', ink: 'text-white', swatch: '#6366f1' },
+  indigo: { label: 'Indigo', bg: 'bg-indigo-500', ink: 'text-black', swatch: '#6366f1' },
   emerald: { label: 'Emerald', bg: 'bg-emerald-500', ink: 'text-black', swatch: '#10b981' },
-  purple: { label: 'Ungu', bg: 'bg-purple-500', ink: 'text-white', swatch: '#a855f7' },
-  pink: { label: 'Merah Muda', bg: 'bg-pink-500', ink: 'text-white', swatch: '#ec4899' },
+  purple: { label: 'Ungu', bg: 'bg-purple-500', ink: 'text-black', swatch: '#a855f7' },
+  pink: { label: 'Merah Muda', bg: 'bg-pink-500', ink: 'text-black', swatch: '#ec4899' },
   slate: { label: 'Slate', bg: 'bg-slate-500', ink: 'text-white', swatch: '#64748b' },
   cyan: { label: 'Cyan', bg: 'bg-cyan-500', ink: 'text-black', swatch: '#06b6d4' },
   white: { label: 'Putih', bg: 'bg-white', ink: 'text-black', swatch: '#ffffff' }
@@ -76,10 +76,14 @@ export const SCORE_BUTTON_COLORS = {
 
 export const SCORE_BUTTON_COLOR_KEYS = Object.keys(SCORE_BUTTON_COLORS)
 
+/**
+ * `textColor` is the label colour override: 'white' | 'black' | a hex string, or absent
+ * for auto (whichever of black/white has the better WCAG ratio against `color`).
+ */
 export const DEFAULT_SCORE_BUTTONS = [
-  { id: 'score-1', label: '', value: 100, color: 'green' },
-  { id: 'score-2', label: '', value: -50, color: 'blue' },
-  { id: 'score-3', label: '', value: 50, color: 'yellow' }
+  { id: 'score-1', label: '', value: 100, color: 'green', textColor: '' },
+  { id: 'score-2', label: '', value: -50, color: 'blue', textColor: '' },
+  { id: 'score-3', label: '', value: 50, color: 'yellow', textColor: '' }
 ]
 
 export const AUDIO_FILES = {
