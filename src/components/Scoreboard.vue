@@ -306,26 +306,23 @@
           </button>
         </div>
 
-        <!-- Portrait phones: score on top, buttons in a 3-across row below.
-             Landscape / wide: classic side-by-side with vertical buttons. -->
-        <div class="flex flex-1 min-h-0 gap-2 portrait:flex-col portrait:justify-center landscape:flex-row landscape:justify-between">
+        <!-- Score on top (full card width), buttons in a row at the bottom -->
+        <div class="flex flex-col flex-1 min-h-0 gap-2">
           <transition name="bounce" mode="out-in">
             <div
               :key="team.score"
-              :class="[
-                'text-black font-bold tabular-nums leading-none subpixel-antialiased flex-1 min-w-0 flex items-center justify-center whitespace-nowrap overflow-hidden text-ellipsis portrait:py-2 portrait:min-h-[4.5rem] text-[clamp(1.25rem,10cqw,6rem)] portrait:text-[clamp(2rem,14cqw,5rem)]'
-              ]"
+              class="text-black font-bold tabular-nums leading-none subpixel-antialiased flex-1 min-w-0 flex items-center justify-center whitespace-nowrap overflow-hidden text-ellipsis py-2 min-h-[4.5rem] text-[clamp(2rem,14cqw,6rem)]"
               aria-live="polite"
             >
               <span v-if="leaders.includes(team.id)" aria-hidden="true">👑&nbsp;</span>{{ Math.round(team.displayScore ?? team.score) }}
             </div>
           </transition>
 
-          <div class="gap-2 portrait:grid portrait:grid-cols-3 portrait:w-full landscape:flex landscape:flex-col landscape:justify-center landscape:shrink-0 landscape:w-16 sm:landscape:w-24">
+          <div class="flex gap-2 w-full">
             <button
               v-if="globalScores.score1 !== 0"
               @click="changeScore(team.id, globalScores.score1)"
-              class="bg-green-500 text-white text-sm portrait:text-base sm:text-base font-bold px-2 py-1 min-h-[2.25rem] portrait:min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation"
+              class="flex-1 bg-green-500 text-white text-base font-bold px-2 py-1 min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation"
             >
               {{ globalScores.score1 >= 0 ? '+' : '' }}{{ globalScores.score1 }}
             </button>
@@ -333,7 +330,7 @@
             <button
               v-if="globalScores.score2 !== 0"
               @click="changeScore(team.id, globalScores.score2)"
-              class="bg-blue-500 text-white text-sm portrait:text-base sm:text-base font-bold px-2 py-1 min-h-[2.25rem] portrait:min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation"
+              class="flex-1 bg-blue-500 text-white text-base font-bold px-2 py-1 min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation"
             >
               {{ globalScores.score2 >= 0 ? '+' : '' }}{{ globalScores.score2 }}
             </button>
@@ -341,7 +338,7 @@
             <button
               v-if="globalScores.score3 !== 0"
               @click="changeScore(team.id, globalScores.score3)"
-              class="bg-yellow-500 text-white text-sm portrait:text-base sm:text-base font-bold px-2 py-1 min-h-[2.25rem] portrait:min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation"
+              class="flex-1 bg-yellow-500 text-white text-base font-bold px-2 py-1 min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation"
             >
               {{ globalScores.score3 >= 0 ? '+' : '' }}{{ globalScores.score3 }}
             </button>
