@@ -180,6 +180,33 @@ import { uid } from '../lib/uid'
 const sfx = createSfx()
 const motion = createMotion()
 
+// One pending flash-clear per team. Re-scoring before the timer fires has to restart it:
+// without this the first tap's timeout wipes the tint out from under the second, and the
+// card never lights up at all on fast repeat taps.
+const flashTimers = new Map()
+
+function scheduleFlashClear(team) {
+  cancelFlashClear(team.id)
+  flashTimers.set(
+    team.id,
+    setTimeout(() => {
+      flashTimers.delete(team.id)
+      team.lastChange = 0
+    }, MOTION.scoreFlash)
+  )
+}
+
+function cancelFlashClear(teamId) {
+  const pending = flashTimers.get(teamId)
+  if (pending) clearTimeout(pending)
+  flashTimers.delete(teamId)
+}
+
+function cancelAllFlashClears() {
+  for (const pending of flashTimers.values()) clearTimeout(pending)
+  flashTimers.clear()
+}
+
 export default {
   name: 'Scoreboard',
   components: {
@@ -322,6 +349,7 @@ export default {
   },
   beforeUnmount() {
     this.stopTicking()
+    cancelAllFlashClears()
     window.removeEventListener('keydown', this.handleKeydown)
     window.removeEventListener('beforeunload', this.flushSave)
     this.stopWatchingSystemTheme?.()
@@ -482,6 +510,7 @@ export default {
       if (index === -1) return
       const [removed] = this.teams.splice(index, 1)
       motion.cancelTeam(teamId)
+      cancelFlashClear(teamId)
       this.pushHistory({
         type: 'remove',
         teamId: removed.id,
@@ -517,9 +546,7 @@ export default {
         nextScore
       })
       // capture the object, not the index — safe if the team is removed mid-timeout
-      setTimeout(() => {
-        team.lastChange = 0
-      }, MOTION.scoreFlash)
+      scheduleFlashClear(team)
     },
 
     // ---------- history / undo ----------
