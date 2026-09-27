@@ -4,6 +4,7 @@ import {
   BACKGROUND_FIT_CHOICES,
   SCORE_SCALE_RANGE
 } from '../config'
+import { bestInkFor } from './contrast'
 import { sanitizeImageUrl } from './image'
 
 export const THEME_CHOICES = [
@@ -132,6 +133,10 @@ export function resolveColors(appearance) {
   return colors
 }
 
+function inkHex(background) {
+  return bestInkFor(background) === 'text-white' ? '#ffffff' : '#111827'
+}
+
 export function applyAppearance(appearance, root) {
   const target = root ?? (typeof document !== 'undefined' ? document.documentElement : null)
   if (!target) return
@@ -142,5 +147,9 @@ export function applyAppearance(appearance, root) {
   for (const [key, value] of Object.entries(colors)) {
     target.style.setProperty(`--cc-${kebab(key)}`, value)
   }
+  // Accent and leader are organiser-overridable, so a fixed white label would drop to
+  // ~2.3:1 on the default green. Derive the ink instead of assuming it.
+  target.style.setProperty('--cc-accent-ink', inkHex(colors.accent))
+  target.style.setProperty('--cc-leader-ink', inkHex(colors.leader))
   target.style.setProperty('--cc-score-scale', String(appearance.scoreScale))
 }

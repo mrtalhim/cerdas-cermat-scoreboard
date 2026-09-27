@@ -2,15 +2,13 @@
   <transition name="fade">
     <div
       v-show="isOpen"
-      class="fixed top-24 portrait:top-20 sm:top-36 left-1/2 -translate-x-1/2 sm:left-4 sm:translate-x-0 sm:self-start z-20 flex flex-col bg-gray-200 dark:bg-slate-800 p-4 portrait:p-4 sm:p-8 gap-2 rounded-lg shadow-lg w-[min(24rem,calc(100vw-1rem))] max-h-[85dvh] portrait:max-h-[calc(100dvh-6rem)] overflow-y-auto"
+      class="fixed top-24 portrait:top-20 sm:top-36 left-1/2 -translate-x-1/2 sm:left-4 sm:translate-x-0 sm:self-start z-20 flex flex-col bg-cc-surface text-cc-surface-ink p-4 portrait:p-4 sm:p-8 gap-2 rounded-lg shadow-lg w-[min(24rem,calc(100vw-1rem))] max-h-[85dvh] portrait:max-h-[calc(100dvh-6rem)] overflow-y-auto"
     >
       <div class="flex flex-row gap-2 justify-end items-baseline">
-        <h2 class="text-3xl sm:text-5xl text-black dark:text-white font-bold mb-4 w-full">
-          Pengaturan
-        </h2>
+        <h2 class="text-3xl sm:text-5xl font-bold mb-4 w-full">Pengaturan</h2>
         <button
           @click="$emit('close')"
-          class="absolute bg-gray-800 dark:bg-slate-700 text-white px-3 py-2 rounded-lg"
+          class="absolute bg-cc-control text-cc-control-ink px-3 py-2 rounded-lg"
           aria-label="Tutup pengaturan"
         >
           &#10006;
@@ -25,8 +23,8 @@
           :class="[
             'px-3 py-1 rounded-lg touch-manipulation',
             activeTab === tab
-              ? 'bg-gray-800 dark:bg-slate-600 text-white font-bold'
-              : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200'
+              ? 'bg-cc-control text-cc-control-ink font-bold'
+              : 'bg-cc-surface-2 text-cc-surface-ink'
           ]"
         >
           {{ tab }}
@@ -35,14 +33,12 @@
 
       <!-- ---------- Skor ---------- -->
       <div v-show="activeTab === 'Skor'" class="flex flex-col gap-3 text-left">
-        <span class="text-black dark:text-white font-bold">
-          Tombol Skor (nilai 0 akan disembunyikan)
-        </span>
+        <span class="font-bold"> Tombol Skor (nilai 0 akan disembunyikan) </span>
         <ul class="flex flex-col gap-2">
           <li
             v-for="(button, index) in scoreButtons"
             :key="button.id"
-            class="flex flex-col gap-1.5 p-2 rounded-lg bg-white dark:bg-slate-700"
+            class="flex flex-col gap-1.5 p-2 rounded-lg bg-cc-surface-2"
           >
             <div class="flex flex-row items-center gap-1.5">
               <input
@@ -83,7 +79,7 @@
               <button
                 @click="patchButton(index, { textColor: '' })"
                 :disabled="!button.textColor"
-                class="px-2 py-1 rounded-lg bg-gray-300 dark:bg-slate-600 text-xs disabled:opacity-40 touch-manipulation min-h-[2rem] min-w-[2rem] shrink-0"
+                class="px-2 py-1 rounded-lg bg-cc-control text-cc-control-ink text-xs disabled:opacity-40 touch-manipulation min-h-[2rem] min-w-[2rem] shrink-0"
                 title="Biarkan otomatis (pilih hitam atau putih yang paling kontras)"
               >
                 &#8635;
@@ -102,7 +98,7 @@
               <button
                 @click="$emit('move-button', { index, delta: -1 })"
                 :disabled="index === 0"
-                class="px-2 py-1 rounded-lg bg-gray-300 dark:bg-slate-600 text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem] shrink-0"
+                class="px-2 py-1 rounded-lg bg-cc-control text-cc-control-ink text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem] shrink-0"
                 aria-label="Geser tombol ke atas"
               >
                 &#9650;
@@ -110,7 +106,7 @@
               <button
                 @click="$emit('move-button', { index, delta: 1 })"
                 :disabled="index === scoreButtons.length - 1"
-                class="px-2 py-1 rounded-lg bg-gray-300 dark:bg-slate-600 text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem] shrink-0"
+                class="px-2 py-1 rounded-lg bg-cc-control text-cc-control-ink text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem] shrink-0"
                 aria-label="Geser tombol ke bawah"
               >
                 &#9660;
@@ -118,7 +114,7 @@
               <button
                 @click="$emit('remove-button', index)"
                 :disabled="scoreButtons.length <= 1"
-                class="px-2 py-1 rounded-lg bg-red-600 text-white text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem] shrink-0"
+                class="px-2 py-1 rounded-lg bg-cc-danger text-cc-danger-ink text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem] shrink-0"
                 aria-label="Hapus tombol skor"
               >
                 &#10006;
@@ -130,13 +126,13 @@
           <button
             @click="$emit('add-button')"
             :disabled="scoreButtons.length >= maxButtons"
-            class="flex-1 bg-cc-accent text-white px-3 py-2 rounded-lg text-sm disabled:opacity-40 touch-manipulation"
+            class="flex-1 bg-cc-accent text-cc-accent-ink px-3 py-2 rounded-lg text-sm disabled:opacity-40 touch-manipulation"
           >
             + Tambah Tombol
           </button>
           <button
             @click="$emit('reset-buttons')"
-            class="flex-1 bg-gray-500 text-white px-3 py-2 rounded-lg text-sm touch-manipulation"
+            class="flex-1 bg-cc-control text-cc-control-ink px-3 py-2 rounded-lg text-sm touch-manipulation"
           >
             Setel Ulang
           </button>
@@ -145,7 +141,7 @@
 
       <!-- ---------- Tampilan ---------- -->
       <div v-show="activeTab === 'Tampilan'" class="flex flex-col gap-3 text-left">
-        <span class="text-black dark:text-white font-bold">Tema</span>
+        <span class="font-bold">Tema</span>
         <div class="flex flex-wrap gap-1.5">
           <button
             v-for="choice in themeChoices"
@@ -154,20 +150,20 @@
             :class="[
               'flex-1 px-3 py-2 rounded-lg text-sm touch-manipulation',
               appearance.theme === choice.value
-                ? 'bg-gray-800 dark:bg-slate-600 text-white font-bold'
-                : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200'
+                ? 'bg-cc-control text-cc-control-ink font-bold'
+                : 'bg-cc-surface-2 text-cc-surface-ink'
             ]"
           >
             {{ choice.label }}
           </button>
         </div>
 
-        <span class="text-black dark:text-white font-bold">Warna</span>
+        <span class="font-bold">Warna</span>
         <ul class="flex flex-col gap-1.5">
           <li
             v-for="field in colorFields"
             :key="field.key"
-            class="flex flex-row items-center gap-2 text-sm text-gray-700 dark:text-gray-200"
+            class="flex flex-row items-center gap-2 text-sm text-cc-muted"
           >
             <input
               type="color"
@@ -180,7 +176,7 @@
             <button
               @click="$emit('clear-color', field.key)"
               :disabled="!appearance.overrides?.[field.key]"
-              class="px-2 py-1 rounded-lg bg-gray-300 dark:bg-slate-600 text-xs disabled:opacity-40 touch-manipulation min-h-[2rem]"
+              class="px-2 py-1 rounded-lg bg-cc-control text-cc-control-ink text-xs disabled:opacity-40 touch-manipulation min-h-[2rem]"
               title="Kembalikan ke bawaan tema"
             >
               &#8635;
@@ -188,7 +184,7 @@
           </li>
         </ul>
 
-        <label class="text-black dark:text-white font-bold" for="score-scale">
+        <label class="font-bold" for="score-scale">
           Ukuran angka skor: {{ appearance.scoreScale.toFixed(2) }}&times;
         </label>
         <input
@@ -204,7 +200,7 @@
 
         <button
           @click="$emit('reset-appearance')"
-          class="bg-gray-500 text-white px-3 py-2 rounded-lg text-sm touch-manipulation"
+          class="bg-cc-control text-cc-control-ink px-3 py-2 rounded-lg text-sm touch-manipulation"
         >
           Setel Ulang Tampilan
         </button>
@@ -212,14 +208,18 @@
 
       <!-- ---------- Latar ---------- -->
       <div v-show="activeTab === 'Latar'" class="flex flex-col gap-3 text-left">
-        <p v-if="storageError" class="bg-red-600 text-white text-sm p-2 rounded-lg" role="alert">
+        <p
+          v-if="storageError"
+          class="bg-cc-danger text-cc-danger-ink text-sm p-2 rounded-lg"
+          role="alert"
+        >
           Penyimpanan penuh — pengaturan terbaru tidak tersimpan. Kurangi ukuran gambar latar atau
           hapus riwayatnya.
         </p>
 
         <div
           v-if="backgroundError"
-          class="bg-red-600 text-white text-sm p-2 rounded-lg"
+          class="bg-cc-danger text-cc-danger-ink text-sm p-2 rounded-lg"
           role="alert"
         >
           {{ backgroundError }}
@@ -227,15 +227,13 @@
 
         <div
           v-if="backgroundInfo"
-          class="bg-green-700 text-white text-sm p-2 rounded-lg"
+          class="bg-cc-surface-2 text-cc-surface-ink text-sm p-2 rounded-lg"
           role="status"
         >
           {{ backgroundInfo }}
         </div>
 
-        <div
-          class="border-2 border-dashed border-gray-400 dark:border-slate-500 rounded-lg p-3 text-center"
-        >
+        <div class="border-2 border-dashed border-cc-muted rounded-lg p-3 text-center">
           <input
             id="background-file"
             type="file"
@@ -245,16 +243,16 @@
           />
           <label
             for="background-file"
-            class="block cursor-pointer bg-cc-accent text-white text-sm px-3 py-2 rounded-lg touch-manipulation"
+            class="block cursor-pointer bg-cc-accent text-cc-accent-ink text-sm px-3 py-2 rounded-lg touch-manipulation"
           >
             {{ isUploading ? 'Memproses…' : 'Pilih Gambar' }}
           </label>
-          <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">
+          <p class="text-xs text-cc-muted mt-2">
             Disimpan di perangkat ini. Gambar besar otomatis dikecilkan agar muat.
           </p>
         </div>
 
-        <span class="text-black dark:text-white font-bold">Atau pakai URL</span>
+        <span class="font-bold">Atau pakai URL</span>
         <input
           v-model="backgroundUrlDraft"
           type="url"
@@ -269,16 +267,16 @@
           <div class="flex gap-2">
             <button
               @click="$emit('remove-background')"
-              class="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm touch-manipulation"
+              class="flex-1 bg-cc-danger text-cc-danger-ink px-3 py-2 rounded-lg text-sm touch-manipulation"
             >
               Hapus Latar
             </button>
-            <span class="flex-1 self-center text-xs text-gray-600 dark:text-gray-400 text-end">
+            <span class="flex-1 self-center text-xs text-cc-muted text-end">
               {{ backgroundSizeLabel }}
             </span>
           </div>
 
-          <span class="text-black dark:text-white font-bold">Bentuk gambar</span>
+          <span class="font-bold">Bentuk gambar</span>
           <div class="flex flex-wrap gap-1.5">
             <button
               v-for="choice in fitChoices"
@@ -287,15 +285,15 @@
               :class="[
                 'flex-1 px-3 py-2 rounded-lg text-sm touch-manipulation',
                 appearance.backgroundFit === choice.value
-                  ? 'bg-gray-800 dark:bg-slate-600 text-white font-bold'
-                  : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200'
+                  ? 'bg-cc-control text-cc-control-ink font-bold'
+                  : 'bg-cc-surface-2 text-cc-surface-ink'
               ]"
             >
               {{ choice.label }}
             </button>
           </div>
 
-          <label class="text-black dark:text-white font-bold" for="background-dim">
+          <label class="font-bold" for="background-dim">
             Gelapkan gambar: {{ Math.round(appearance.backgroundDim * 100) }}%
           </label>
           <input
@@ -313,9 +311,7 @@
 
       <!-- ---------- Identitas ---------- -->
       <div v-show="activeTab === 'Identitas'" class="flex flex-col gap-2 text-left">
-        <label class="text-black dark:text-white font-bold" for="brand-app-name"
-          >Nama Aplikasi</label
-        >
+        <label class="font-bold" for="brand-app-name">Nama Aplikasi</label>
         <input
           id="brand-app-name"
           :value="branding.appName"
@@ -325,7 +321,7 @@
           @input="updateBranding('appName', $event.target.value)"
         />
 
-        <label class="text-black dark:text-white font-bold" for="brand-title"> Judul Bawaan </label>
+        <label class="font-bold" for="brand-title"> Judul Bawaan </label>
         <input
           id="brand-title"
           :value="branding.defaultTitle"
@@ -335,9 +331,7 @@
           @input="updateBranding('defaultTitle', $event.target.value)"
         />
 
-        <label class="text-black dark:text-white font-bold" for="brand-description">
-          Deskripsi
-        </label>
+        <label class="font-bold" for="brand-description"> Deskripsi </label>
         <input
           id="brand-description"
           :value="branding.description"
@@ -347,9 +341,7 @@
           @input="updateBranding('description', $event.target.value)"
         />
 
-        <label class="text-black dark:text-white font-bold" for="brand-theme-color">
-          Warna Browser
-        </label>
+        <label class="font-bold" for="brand-theme-color"> Warna Browser </label>
         <input
           id="brand-theme-color"
           :value="branding.themeColor"
@@ -358,7 +350,7 @@
           @input="updateBranding('themeColor', $event.target.value)"
         />
 
-        <label class="text-black dark:text-white font-bold" for="brand-logo">URL Logo</label>
+        <label class="font-bold" for="brand-logo">URL Logo</label>
         <input
           id="brand-logo"
           :value="branding.logoUrl"
@@ -371,7 +363,7 @@
 
         <button
           @click="$emit('reset-branding')"
-          class="bg-gray-500 text-white px-3 py-2 rounded-lg text-sm touch-manipulation"
+          class="bg-cc-control text-cc-control-ink px-3 py-2 rounded-lg text-sm touch-manipulation"
         >
           Setel Ulang Identitas
         </button>
@@ -381,17 +373,17 @@
       <div v-show="activeTab === 'Umum'" class="flex flex-col gap-2 text-left">
         <button
           @click="$emit('clear-teams')"
-          class="bg-red-600 text-white text-center p-2 rounded-lg"
+          class="bg-cc-danger text-cc-danger-ink text-center p-2 rounded-lg"
         >
           Hapus Semua Tim
         </button>
         <button
           @click="$emit('test-sound')"
-          class="bg-slate-600 text-white text-center p-2 rounded-lg"
+          class="bg-cc-control text-cc-control-ink text-center p-2 rounded-lg"
         >
           &#128266; Tes Suara
         </button>
-        <p class="text-xs text-gray-600 dark:text-gray-400">
+        <p class="text-xs text-cc-muted">
           Riwayat perubahan skor tersimpan otomatis di perangkat ini.
         </p>
       </div>

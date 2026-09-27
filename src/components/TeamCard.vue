@@ -16,7 +16,7 @@
       />
       <button
         v-if="!isPresenting"
-        class="bg-red-600 text-white px-3 sm:px-4 rounded-lg shrink-0 touch-manipulation portrait:min-h-[2.75rem] portrait:min-w-[2.75rem] transition-all duration-100 hover:scale-105"
+        class="bg-cc-danger text-cc-danger-ink px-3 sm:px-4 rounded-lg shrink-0 touch-manipulation portrait:min-h-[2.75rem] portrait:min-w-[2.75rem] transition-all duration-100 hover:scale-105"
         @click="$emit('remove', team.id)"
         aria-label="Hapus tim"
       >

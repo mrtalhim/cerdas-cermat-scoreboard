@@ -15,12 +15,47 @@
   --cc-positive: #22c55e;
   --cc-negative: #ef4444;
   --cc-overlay: rgba(0, 0, 0, 0.75);
+
+  /* Accent and leader are organiser-overridable, so their ink cannot be hardcoded to
+     white: applyAppearance() recomputes these from the resolved colour every time. */
+  --cc-accent-ink: #ffffff;
+  --cc-leader-ink: #111827;
+}
+
+/*
+ * Chrome surfaces: toolbars, panels, buttons. Deliberately NOT in COLOR_FIELDS, so
+ * they follow the active theme rather than the organiser's board overrides — a custom
+ * board colour must never be able to make the surrounding controls unreadable.
+ *
+ * surface-2 is always one step *raised* off surface, so nested rows and inactive tabs
+ * stay visible against the panel in both themes.
+ */
+:root,
+.dark {
+  --cc-surface: #e5e7eb;
+  --cc-surface-2: #f9fafb;
+  --cc-surface-ink: #111827;
+  --cc-muted: #4b5563;
+  --cc-control: #1f2937;
+  --cc-control-ink: #ffffff;
+  --cc-danger: #dc2626;
+  --cc-danger-ink: #ffffff;
 }
 
 .dark {
   --cc-positive: #22c55e;
   --cc-negative: #ef4444;
   --cc-overlay: rgba(0, 0, 0, 0.85);
+
+  --cc-surface: #1f2937;
+  --cc-surface-2: #374151;
+  --cc-surface-ink: #f9fafb;
+  /* #9ca3af only reached 4.06:1 on surface-2, under the 4.5:1 that small text needs. */
+  --cc-muted: #aab2bd;
+  --cc-control: #4b5563;
+  --cc-control-ink: #f9fafb;
+  --cc-danger: #b91c1c;
+  --cc-danger-ink: #f9fafb;
 }
 
 *,
@@ -28,7 +63,6 @@
 *::after {
   box-sizing: border-box;
   margin: 0;
-  font-weight: normal;
 }
 
 body {
