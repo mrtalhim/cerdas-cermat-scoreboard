@@ -45,12 +45,26 @@ export function buildSnapshot(state) {
   }
 }
 
+/** @returns {{ok: true} | {ok: false, reason: 'quota' | 'unknown'}} */
 export function saveSnapshot(state) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(buildSnapshot(state)))
-  } catch {
-    // storage full / private mode — scoreboard keeps working in-memory
+    return { ok: true }
+  } catch (error) {
+    // Full or blocked storage. Reported to the UI rather than swallowed, because a
+    // silently dropped write looks identical to "my settings did not save".
+    return { ok: false, reason: isQuotaError(error) ? 'quota' : 'unknown' }
   }
+}
+
+function isQuotaError(error) {
+  if (!error) return false
+  return (
+    error.name === 'QuotaExceededError' ||
+    error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+    error.code === 22 ||
+    error.code === 1014
+  )
 }
 
 function parsePayload(data) {

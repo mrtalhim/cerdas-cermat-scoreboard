@@ -1,11 +1,9 @@
 <template>
   <!-- Full-bleed background layer so flashes fill the whole screen, not just the content column -->
-  <div
-    class="min-h-screen min-h-dvh w-full relative overflow-x-clip bg-cc-board text-cc-board-ink bg-transition"
-    :style="isFlashing ? { backgroundColor: 'var(--cc-negative)' } : undefined"
-  >
+  <div class="min-h-screen min-h-dvh w-full relative overflow-x-clip text-cc-board-ink">
+    <BoardBackground :appearance="appearance" :is-flashing="isFlashing" />
     <div
-      class="flex flex-col items-center mx-auto text-center p-2 portrait:p-2 sm:p-4 gap-1.5 portrait:gap-1.5 sm:gap-2 w-full max-w-7xl min-h-screen min-h-dvh pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+      class="relative flex flex-col items-center mx-auto text-center p-2 portrait:p-2 sm:p-4 gap-1.5 portrait:gap-1.5 sm:gap-2 w-full max-w-7xl min-h-screen min-h-dvh pb-[max(0.5rem,env(safe-area-inset-bottom))]"
     >
       <div class="flex flex-row items-center justify-center gap-2 w-full">
         <img
@@ -71,6 +69,12 @@
         :resolved-colors="resolvedColors"
         :color-fields="colorFields"
         :theme-choices="themeChoices"
+        :fit-choices="fitChoices"
+        :background-error="backgroundError"
+        :background-info="backgroundInfo"
+        :background-bytes="backgroundBytes"
+        :is-uploading="isUploading"
+        :storage-error="storageError"
         @close="togglePanel"
         @add-button="addScoreButton"
         @remove-button="removeScoreButton"
@@ -84,6 +88,11 @@
         @reset-appearance="resetAppearance"
         @update-branding="updateBranding"
         @reset-branding="resetBranding"
+        @background-file="handleBackgroundFile"
+        @update-background-url="setBackgroundUrl"
+        @update-background-dim="(value) => patchAppearance({ backgroundDim: value })"
+        @update-background-fit="(value) => patchAppearance({ backgroundFit: value })"
+        @remove-background="removeBackground"
         @clear-teams="resetAll"
         @test-sound="testSound"
       />
@@ -135,6 +144,7 @@
 
 <script>
 import AppToolbar from './AppToolbar.vue'
+import BoardBackground from './BoardBackground.vue'
 import CountdownOverlay from './CountdownOverlay.vue'
 import HistoryPanel from './HistoryPanel.vue'
 import LeaderBanner from './LeaderBanner.vue'
@@ -142,7 +152,14 @@ import MiniControls from './MiniControls.vue'
 import SettingsPanel from './SettingsPanel.vue'
 import TeamCard from './TeamCard.vue'
 
-import { MAX_HISTORY, MAX_MINUTES, MAX_SECONDS, MOTION, TIMER_DEFAULTS } from '../config'
+import {
+  BACKGROUND_FIT_CHOICES,
+  MAX_HISTORY,
+  MAX_MINUTES,
+  MAX_SECONDS,
+  MOTION,
+  TIMER_DEFAULTS
+} from '../config'
 import {
   applyAppearance,
   COLOR_FIELDS,
@@ -152,6 +169,7 @@ import {
   THEME_CHOICES
 } from '../lib/appearance'
 import { applyBranding, sanitizeBranding } from '../lib/branding'
+import { dataUrlBytes, formatBytes, isLargeBackground, prepareBackgroundImage } from '../lib/image'
 import { createMotion } from '../lib/motion'
 import { createScoreButton, moveScoreButton, normalizeScoreButtons } from '../lib/scoreButtons'
 import { createSfx } from '../lib/sfx'
@@ -166,6 +184,7 @@ export default {
   name: 'Scoreboard',
   components: {
     AppToolbar,
+    BoardBackground,
     CountdownOverlay,
     HistoryPanel,
     LeaderBanner,
@@ -195,6 +214,10 @@ export default {
       countdown: null,
       isFlashing: false,
       saveTimer: null,
+      storageError: false,
+      backgroundError: '',
+      backgroundInfo: '',
+      isUploading: false,
       stopWatchingSystemTheme: null
     }
   },
@@ -247,6 +270,13 @@ export default {
     },
     themeChoices() {
       return THEME_CHOICES
+    },
+    fitChoices() {
+      return BACKGROUND_FIT_CHOICES
+    },
+    backgroundBytes() {
+      const image = this.appearance.backgroundImage
+      return image.startsWith('data:') ? dataUrlBytes(image) : 0
     }
   },
   watch: {
@@ -308,7 +338,8 @@ export default {
     flushSave() {
       clearTimeout(this.saveTimer)
       this.saveTimer = null
-      saveSnapshot(this)
+      const result = saveSnapshot(this)
+      this.storageError = !result.ok
     },
     load() {
       const snapshot = readSnapshot()
@@ -373,6 +404,48 @@ export default {
     },
     resetAppearance() {
       this.appearance = sanitizeAppearance()
+    },
+
+    // ---------- background image ----------
+    patchAppearance(patch) {
+      this.appearance = sanitizeAppearance({ ...this.appearance, ...patch })
+    },
+    async handleBackgroundFile(file) {
+      this.isUploading = true
+      this.backgroundError = ''
+      this.backgroundInfo = ''
+      try {
+        const result = await prepareBackgroundImage(file)
+        if (!result.ok) {
+          this.backgroundError = result.error
+          return
+        }
+        this.patchAppearance({ backgroundImage: result.dataUrl })
+        // Write straight through so a quota failure is reported against this image
+        // rather than surfacing 150ms later from a generic watcher.
+        this.flushSave()
+        if (!result.reencoded) {
+          this.backgroundInfo = `Gambar dipakai apa adanya (${formatBytes(result.bytes)}).`
+        } else if (isLargeBackground(result.bytes)) {
+          this.backgroundInfo =
+            `Gambar dikecilkan ke ${result.width}×${result.height} (${formatBytes(result.bytes)}). ` +
+            'Sebaiknya pakai URL agar tidak boros kuota penyimpanan.'
+        } else {
+          this.backgroundInfo = `Gambar dikecilkan ke ${result.width}×${result.height} (${formatBytes(result.bytes)}).`
+        }
+      } finally {
+        this.isUploading = false
+      }
+    },
+    setBackgroundUrl(value) {
+      this.backgroundError = ''
+      this.patchAppearance({ backgroundImage: value })
+      this.backgroundInfo = ''
+    },
+    removeBackground() {
+      this.backgroundError = ''
+      this.backgroundInfo = ''
+      this.patchAppearance({ backgroundImage: '' })
     },
 
     // ---------- score buttons ----------

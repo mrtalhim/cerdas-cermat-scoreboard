@@ -71,10 +71,6 @@ body {
   animation: bounce-out 0.1s;
 }
 
-.bg-transition {
-  transition: background-color 0.5s ease;
-}
-
 .countdown-pulse {
   animation: cc-pulse 1s infinite;
 }

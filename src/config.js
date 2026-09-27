@@ -17,16 +17,33 @@ export const BRANDING_DEFAULTS = {
   logoUrl: ''
 }
 
+/**
+ * Appearance defaults. Only the non-colour fields live here — the colour defaults are
+ * THEME_PRESETS in lib/appearance.js, so there is a single source of truth per theme.
+ */
 export const APPEARANCE_DEFAULTS = {
   theme: 'auto', // light | dark | auto
-  accent: '#22c55e',
-  card: '#f3f4f6',
-  cardInk: '#111827',
-  leader: '#fbbf24',
-  board: '#ffffff',
-  boardInk: '#111827',
-  scoreScale: 1 // multiplier applied to the card score font size
+  scoreScale: 1, // multiplier applied to the card score font size
+  backgroundImage: '', // data: image (from an upload) or an absolute http(s)/root-relative URL
+  backgroundDim: 0.35, // black scrim over the image, keeps text readable
+  backgroundFit: 'cover' // cover | contain
 }
+
+export const BACKGROUND_FIT_CHOICES = [
+  { value: 'cover', label: 'Isi Layar' },
+  { value: 'contain', label: 'Pas Semuanya' }
+]
+
+export const BACKGROUND_DIM_RANGE = { min: 0, max: 0.9, step: 0.05 }
+
+// A phone photo is routinely 4-12 MB, which localStorage cannot hold. Anything larger
+// than this is refused before decoding; anything above KEEP is downscaled and re-encoded.
+export const BACKGROUND_MAX_UPLOAD_BYTES = 8 * 1024 * 1024
+export const BACKGROUND_KEEP_AS_IS_BYTES = 400 * 1024
+export const BACKGROUND_MAX_DIMENSION = 1920
+export const BACKGROUND_REENCODE_QUALITY = 0.82
+// Above this the stored data URL is worth warning about (quota is ~5 MB total).
+export const BACKGROUND_LARGE_BYTES = 1.5 * 1024 * 1024
 
 export const TIMER_DEFAULTS = {
   minutes: 0,

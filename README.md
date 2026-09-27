@@ -13,6 +13,7 @@ A no-nonsense scoreboard app built with Vue 3 and Tailwind CSS. Manage teams, sc
 - **Leader highlight**: current leader card gets an amber ring + crown.
 - **Flexible score buttons**: add, remove, reorder, rename, recolor, and revalue the score buttons (up to 6). A value of `0` hides its button.
 - **Appearance**: light / dark / auto theme, plus overridable accent, card, leader and board colors, and a score-size slider.
+- **Background image**: upload a photo or paste a URL under *Settings → Latar*, with a dim slider so text stays readable. Uploads are downscaled to 1920px and re-encoded as WebP/JPEG in the browser before being stored, because a raw data URL would not fit in `localStorage`.
 - **Branding**: app name, default title, description, browser theme color, and an optional logo shown in the header — all reflected in `<title>` and the social meta tags.
 
 ## Getting started
@@ -62,9 +63,9 @@ Keyboard shortcuts (ignored while typing in an input):
 ## Project structure
 
 - `src/config.js` — every default in one place: storage keys, branding, appearance, score-button palette, SFX filenames, motion timings.
-- `src/lib/` — framework-free logic: `scoreButtons` (normalize/migrate/reorder), `storage` (v1→v2 migration), `appearance` (theme + CSS variable application), `branding` (document head), `sfx` (WebAudio + HTMLAudio), `motion` (anime.js + confetti), `historyLog`, `uid`.
+- `src/lib/` — framework-free logic: `scoreButtons` (normalize/migrate/reorder), `storage` (v1→v2 migration), `appearance` (theme + CSS variable application), `branding` (document head), `image` (upload validation, downscale, re-encode, URL sanitising), `sfx` (WebAudio + HTMLAudio), `motion` (anime.js + confetti), `historyLog`, `uid`.
 - `src/components/Scoreboard.vue` — orchestrator: owns the state, wires the children, keeps undo/redo and the timer.
-- `src/components/` — `TeamCard`, `AppToolbar`, `MiniControls`, `LeaderBanner`, `SettingsPanel`, `HistoryPanel`, `CountdownOverlay` (props + emits only).
+- `src/components/` — `TeamCard`, `AppToolbar`, `MiniControls`, `LeaderBanner`, `SettingsPanel`, `HistoryPanel`, `CountdownOverlay`, `BoardBackground` (props + emits only).
 - `src/assets/base.css` — the `--cc-*` design tokens plus the transitions shared across components.
 - `src/App.vue` — renders `Scoreboard` directly (no router; single-screen app).
 - `public/*.wav` — sounds, loaded relative to `import.meta.env.BASE_URL` so they work under the `/cerdas-cermat-scoreboard` base path.
@@ -73,6 +74,7 @@ Keyboard shortcuts (ignored while typing in an input):
 
 - **Score buttons, defaults, sounds** — edit `src/config.js`.
 - **Colors** — either pick them at runtime under *Settings → Tampilan* (stored per device) or change the token defaults in `src/assets/base.css` and the `cc.*` aliases in `tailwind.config.js`.
+- **Background image limits** — `BACKGROUND_MAX_UPLOAD_BYTES` (8 MB) refuses oversized files before decoding, `BACKGROUND_MAX_DIMENSION` (1920px) caps the downscale, and `BACKGROUND_DIM_RANGE` sets the dim slider. Anything above `BACKGROUND_LARGE_BYTES` triggers a "use a URL instead" hint, because `localStorage` is capped at roughly 5 MB in total.
 - **Page head / favicon** — `index.html` holds the static defaults; the saved branding settings overwrite `<title>`, `theme-color`, and the `og:*` tags at runtime. Drop a replacement `public/favicon.svg` in place.
 
 ## Deploy

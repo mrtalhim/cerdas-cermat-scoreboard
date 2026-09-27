@@ -1,4 +1,10 @@
-import { APPEARANCE_DEFAULTS, SCORE_SCALE_RANGE } from '../config'
+import {
+  APPEARANCE_DEFAULTS,
+  BACKGROUND_DIM_RANGE,
+  BACKGROUND_FIT_CHOICES,
+  SCORE_SCALE_RANGE
+} from '../config'
+import { sanitizeImageUrl } from './image'
 
 export const THEME_CHOICES = [
   { value: 'auto', label: 'Otomatis' },
@@ -59,6 +65,19 @@ function clampScale(value) {
   return (Math.round(clamped / SCALE_STEP) * SCALE_STEP) / 100
 }
 
+// Snap in hundredths for the same reason as clampScale.
+const DIM_MIN = Math.round(BACKGROUND_DIM_RANGE.min * 100)
+const DIM_MAX = Math.round(BACKGROUND_DIM_RANGE.max * 100)
+const DIM_STEP = Math.round(BACKGROUND_DIM_RANGE.step * 100)
+
+function clampDim(value) {
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) return APPEARANCE_DEFAULTS.backgroundDim
+  const hundredths = Math.round(numeric * 100)
+  const clamped = Math.min(DIM_MAX, Math.max(DIM_MIN, hundredths))
+  return (Math.round(clamped / DIM_STEP) * DIM_STEP) / 100
+}
+
 export function sanitizeAppearance(raw) {
   const source = raw && typeof raw === 'object' ? raw : {}
   const theme = THEME_PRESETS[source.theme] ? source.theme : APPEARANCE_DEFAULTS.theme
@@ -68,10 +87,16 @@ export function sanitizeAppearance(raw) {
   for (const { key } of COLOR_FIELDS) {
     if (isHexColor(rawOverrides[key])) overrides[key] = rawOverrides[key].trim()
   }
+  const fit = BACKGROUND_FIT_CHOICES.some((choice) => choice.value === source.backgroundFit)
+    ? source.backgroundFit
+    : APPEARANCE_DEFAULTS.backgroundFit
   return {
     theme,
     scoreScale: clampScale(source.scoreScale ?? APPEARANCE_DEFAULTS.scoreScale),
-    overrides
+    overrides,
+    backgroundImage: sanitizeImageUrl(source.backgroundImage),
+    backgroundDim: clampDim(source.backgroundDim ?? APPEARANCE_DEFAULTS.backgroundDim),
+    backgroundFit: fit
   }
 }
 

@@ -179,6 +179,107 @@
         </button>
       </div>
 
+      <!-- ---------- Latar ---------- -->
+      <div v-show="activeTab === 'Latar'" class="flex flex-col gap-3 text-left">
+        <p v-if="storageError" class="bg-red-600 text-white text-sm p-2 rounded-lg" role="alert">
+          Penyimpanan penuh — pengaturan terbaru tidak tersimpan. Kurangi ukuran gambar latar atau
+          hapus riwayatnya.
+        </p>
+
+        <div
+          v-if="backgroundError"
+          class="bg-red-600 text-white text-sm p-2 rounded-lg"
+          role="alert"
+        >
+          {{ backgroundError }}
+        </div>
+
+        <div
+          v-if="backgroundInfo"
+          class="bg-green-700 text-white text-sm p-2 rounded-lg"
+          role="status"
+        >
+          {{ backgroundInfo }}
+        </div>
+
+        <div
+          class="border-2 border-dashed border-gray-400 dark:border-slate-500 rounded-lg p-3 text-center"
+        >
+          <input
+            id="background-file"
+            type="file"
+            accept="image/*"
+            class="sr-only"
+            @change="pickFile"
+          />
+          <label
+            for="background-file"
+            class="block cursor-pointer bg-cc-accent text-white text-sm px-3 py-2 rounded-lg touch-manipulation"
+          >
+            {{ isUploading ? 'Memproses…' : 'Pilih Gambar' }}
+          </label>
+          <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">
+            Disimpan di perangkat ini. Gambar besar otomatis dikecilkan agar muat.
+          </p>
+        </div>
+
+        <span class="text-black dark:text-white font-bold">Atau pakai URL</span>
+        <input
+          v-model="backgroundUrlDraft"
+          type="url"
+          maxlength="1000"
+          class="text-base p-2 rounded-lg border"
+          placeholder="https://… (opsional)"
+          @change="commitBackgroundUrl"
+          @keyup.enter="commitBackgroundUrl"
+        />
+
+        <template v-if="appearance.backgroundImage">
+          <div class="flex gap-2">
+            <button
+              @click="$emit('remove-background')"
+              class="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm touch-manipulation"
+            >
+              Hapus Latar
+            </button>
+            <span class="flex-1 self-center text-xs text-gray-600 dark:text-gray-400 text-end">
+              {{ backgroundSizeLabel }}
+            </span>
+          </div>
+
+          <span class="text-black dark:text-white font-bold">Bentuk gambar</span>
+          <div class="flex flex-wrap gap-1.5">
+            <button
+              v-for="choice in fitChoices"
+              :key="choice.value"
+              @click="$emit('update-background-fit', choice.value)"
+              :class="[
+                'flex-1 px-3 py-2 rounded-lg text-sm touch-manipulation',
+                appearance.backgroundFit === choice.value
+                  ? 'bg-gray-800 dark:bg-slate-600 text-white font-bold'
+                  : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200'
+              ]"
+            >
+              {{ choice.label }}
+            </button>
+          </div>
+
+          <label class="text-black dark:text-white font-bold" for="background-dim">
+            Gelapkan gambar: {{ Math.round(appearance.backgroundDim * 100) }}%
+          </label>
+          <input
+            id="background-dim"
+            :value="appearance.backgroundDim"
+            type="range"
+            :min="dimRange.min"
+            :max="dimRange.max"
+            :step="dimRange.step"
+            class="w-full touch-manipulation"
+            @input="$emit('update-background-dim', Number($event.target.value))"
+          />
+        </template>
+      </div>
+
       <!-- ---------- Identitas ---------- -->
       <div v-show="activeTab === 'Identitas'" class="flex flex-col gap-2 text-left">
         <label class="text-black dark:text-white font-bold" for="brand-app-name"
@@ -268,10 +369,11 @@
 </template>
 
 <script>
-import { MAX_SCORE_BUTTONS, SCORE_SCALE_RANGE } from '../config'
+import { BACKGROUND_DIM_RANGE, MAX_SCORE_BUTTONS, SCORE_SCALE_RANGE } from '../config'
+import { formatBytes } from '../lib/image'
 import { colorClasses, matchColorKey } from '../lib/scoreButtons'
 
-const TABS = ['Skor', 'Tampilan', 'Identitas', 'Umum']
+const TABS = ['Skor', 'Tampilan', 'Latar', 'Identitas', 'Umum']
 
 export default {
   name: 'SettingsPanel',
@@ -282,7 +384,13 @@ export default {
     appearance: { type: Object, required: true },
     resolvedColors: { type: Object, required: true },
     colorFields: { type: Array, required: true },
-    themeChoices: { type: Array, required: true }
+    themeChoices: { type: Array, required: true },
+    fitChoices: { type: Array, required: true },
+    backgroundError: { type: String, default: '' },
+    backgroundInfo: { type: String, default: '' },
+    backgroundBytes: { type: Number, default: 0 },
+    isUploading: { type: Boolean, default: false },
+    storageError: { type: Boolean, default: false }
   },
   emits: [
     'close',
@@ -298,6 +406,11 @@ export default {
     'reset-appearance',
     'update-branding',
     'reset-branding',
+    'background-file',
+    'update-background-url',
+    'update-background-dim',
+    'update-background-fit',
+    'remove-background',
     'clear-teams',
     'test-sound'
   ],
@@ -306,12 +419,39 @@ export default {
       activeTab: TABS[0],
       tabs: TABS,
       maxButtons: MAX_SCORE_BUTTONS,
-      scoreScaleRange: SCORE_SCALE_RANGE
+      scoreScaleRange: SCORE_SCALE_RANGE,
+      dimRange: BACKGROUND_DIM_RANGE,
+      // Kept local and committed on change: sanitising on every keystroke would reject
+      // half-typed URLs and make the field look frozen.
+      backgroundUrlDraft: ''
+    }
+  },
+  watch: {
+    'appearance.backgroundImage': {
+      immediate: true,
+      handler(value) {
+        this.backgroundUrlDraft =
+          typeof value === 'string' && !value.startsWith('data:') ? value : ''
+      }
+    }
+  },
+  computed: {
+    backgroundSizeLabel() {
+      return this.backgroundBytes ? `Tersimpan ${formatBytes(this.backgroundBytes)}` : ''
     }
   },
   methods: {
     swatch(button) {
       return colorClasses(button.color)
+    },
+    pickFile(event) {
+      const [file] = event.target.files ?? []
+      // Reset first so picking the same file twice still fires a change event.
+      event.target.value = ''
+      if (file) this.$emit('background-file', file)
+    },
+    commitBackgroundUrl() {
+      this.$emit('update-background-url', this.backgroundUrlDraft)
     },
     pickColor(hex) {
       return matchColorKey(hex) ?? hex
