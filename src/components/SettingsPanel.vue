@@ -11,7 +11,7 @@
           class="btn absolute bg-cc-control text-cc-control-ink"
           aria-label="Tutup pengaturan"
         >
-          &#10006;
+          <AppIcon name="x" />
         </button>
       </div>
 
@@ -46,7 +46,7 @@
                 :value="buttonSwatch(button).swatch"
                 :title="`Warna tombol ${index + 1} (${buttonSwatch(button).label})`"
                 :aria-label="`Warna tombol ${index + 1}`"
-                class="w-9 h-9 shrink-0 rounded border cursor-pointer bg-white"
+                class="w-9 h-9 shrink-0 rounded border cursor-pointer bg-cc-surface-2"
                 @input="patchButton(index, { color: pickColor($event.target.value) })"
               />
               <input
@@ -73,7 +73,7 @@
                 :value="inkSwatch(button)"
                 :title="`Warna teks tombol ${index + 1} (${inkLabel(button)})`"
                 :aria-label="`Warna teks tombol skor ${index + 1}`"
-                class="w-8 h-8 shrink-0 rounded border cursor-pointer bg-white"
+                class="w-8 h-8 shrink-0 rounded border cursor-pointer bg-cc-surface-2"
                 @input="patchButton(index, { textColor: pickInk($event.target.value) })"
               />
               <button
@@ -82,7 +82,7 @@
                 class="btn min-w-[2.75rem] shrink-0 bg-cc-control text-cc-control-ink"
                 title="Biarkan otomatis (pilih hitam atau putih yang paling kontras)"
               >
-                &#8635;
+                <AppIcon name="rotate-ccw" size="sm" />
               </button>
               <button
                 :class="[
@@ -101,7 +101,7 @@
                 class="btn min-w-[2.75rem] shrink-0 bg-cc-control text-cc-control-ink"
                 aria-label="Geser tombol ke atas"
               >
-                &#9650;
+                <AppIcon name="chevron-up" size="sm" />
               </button>
               <button
                 @click="$emit('move-button', { index, delta: 1 })"
@@ -109,7 +109,7 @@
                 class="btn min-w-[2.75rem] shrink-0 bg-cc-control text-cc-control-ink"
                 aria-label="Geser tombol ke bawah"
               >
-                &#9660;
+                <AppIcon name="chevron-down" size="sm" />
               </button>
               <button
                 @click="$emit('remove-button', index)"
@@ -117,7 +117,7 @@
                 class="btn min-w-[2.75rem] shrink-0 bg-cc-danger text-cc-danger-ink"
                 aria-label="Hapus tombol skor"
               >
-                &#10006;
+                <AppIcon name="x" size="sm" />
               </button>
             </div>
           </li>
@@ -169,7 +169,7 @@
               type="color"
               :value="resolvedColors[field.key]"
               :aria-label="field.label"
-              class="w-8 h-8 shrink-0 rounded border cursor-pointer bg-white"
+              class="w-8 h-8 shrink-0 rounded border cursor-pointer bg-cc-surface-2"
               @input="$emit('update-color', { key: field.key, value: $event.target.value })"
             />
             <span class="flex-1">{{ field.label }}</span>
@@ -179,7 +179,7 @@
               class="btn btn-xs bg-cc-control text-cc-control-ink"
               title="Kembalikan ke bawaan tema"
             >
-              &#8635;
+              <AppIcon name="rotate-ccw" size="sm" />
             </button>
           </li>
         </ul>
@@ -346,7 +346,7 @@
           id="brand-theme-color"
           :value="branding.themeColor"
           type="color"
-          class="w-16 h-9 rounded border cursor-pointer bg-white"
+          class="w-16 h-9 rounded border cursor-pointer bg-cc-surface-2"
           @input="updateBranding('themeColor', $event.target.value)"
         />
 
@@ -378,7 +378,8 @@
           @click="$emit('test-sound')"
           class="btn btn-block bg-cc-control text-cc-control-ink"
         >
-          &#128266; Tes Suara
+          <AppIcon name="volume-2" size="sm" />
+          Tes Suara
         </button>
         <p class="text-xs text-cc-muted">
           Riwayat perubahan skor tersimpan otomatis di perangkat ini.
@@ -403,11 +404,13 @@ import {
   normalizeTextColor
 } from '../lib/scoreButtons'
 import { isHexColor } from '../lib/branding'
+import AppIcon from './AppIcon.vue'
 
 const TABS = ['Skor', 'Tampilan', 'Latar', 'Identitas', 'Umum']
 
 export default {
   name: 'SettingsPanel',
+  components: { AppIcon },
   props: {
     isOpen: { type: Boolean, default: false },
     scoreButtons: { type: Array, required: true },

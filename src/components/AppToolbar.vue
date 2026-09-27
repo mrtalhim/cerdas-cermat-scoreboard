@@ -43,21 +43,24 @@
       title="Rayakan tim yang memimpin"
       class="btn bg-cc-leader text-cc-leader-ink font-bold"
     >
-      &#127881; Pemenang
+      <AppIcon name="trophy" />
+      Pemenang
     </button>
     <button
       @click="$emit('present')"
       title="Mode presentasi: sembunyikan toolbar (F)"
       class="btn bg-cc-control text-cc-control-ink"
     >
-      &#x26F6; Presentasi
+      <AppIcon name="presentation" />
+      Presentasi
     </button>
     <button
       @click="$emit('toggle-mute')"
       :title="isMuted ? 'Nyalakan suara' : 'Bisukan suara'"
       class="btn bg-cc-control text-cc-control-ink"
     >
-      {{ isMuted ? '&#128263; Bisukan' : '&#128266; Suara' }}
+      <AppIcon :name="isMuted ? 'volume-x' : 'volume-2'" />
+      {{ isMuted ? 'Bisukan' : 'Suara' }}
     </button>
     <div
       v-if="!isCountingDown"
@@ -68,10 +71,13 @@
         id="timer-minutes"
         :value="minutes"
         type="number"
+        inputmode="numeric"
+        pattern="[0-9]*"
         min="0"
         :max="maxMinutes"
         placeholder="Menit"
         class="w-16 sm:w-20 text-base text-cc-surface-ink bg-cc-surface-2 text-end p-2 border rounded-lg"
+        @focus="$event.target.select()"
         @input="$emit('update:minutes', Number($event.target.value))"
       />
       <span aria-hidden="true">m</span>
@@ -80,10 +86,13 @@
         id="timer-seconds"
         :value="seconds"
         type="number"
+        inputmode="numeric"
+        pattern="[0-9]*"
         min="0"
         :max="maxSeconds"
         placeholder="Detik"
         class="w-16 sm:w-20 text-base text-cc-surface-ink bg-cc-surface-2 text-end p-2 border rounded-lg"
+        @focus="$event.target.select()"
         @input="$emit('update:seconds', Number($event.target.value))"
       />
       <span aria-hidden="true">d</span>
@@ -96,9 +105,11 @@
 
 <script>
 import { MAX_MINUTES, MAX_SECONDS } from '../config'
+import AppIcon from './AppIcon.vue'
 
 export default {
   name: 'AppToolbar',
+  components: { AppIcon },
   props: {
     canUndo: { type: Boolean, default: false },
     canRedo: { type: Boolean, default: false },

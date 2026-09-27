@@ -11,7 +11,7 @@
           class="btn bg-cc-control text-cc-control-ink"
           aria-label="Tutup riwayat"
         >
-          &#10006;
+          <AppIcon name="x" />
         </button>
       </div>
       <div class="flex gap-2">
@@ -40,7 +40,7 @@
       <p v-if="entries.length === 0" class="text-cc-muted text-sm">
         Belum ada perubahan. Perubahan skor, tambah dan hapus tim akan muncul di sini.
       </p>
-      <ol v-else class="overflow-y-auto min-h-0 flex flex-col gap-1 pr-1">
+      <ol v-else class="selectable overflow-y-auto min-h-0 flex flex-col gap-1 pr-1">
         <li
           v-for="entry in entries"
           :key="entry.id"
@@ -56,9 +56,11 @@
 
 <script>
 import { describeEntry, formatEntryTime } from '../lib/historyLog'
+import AppIcon from './AppIcon.vue'
 
 export default {
   name: 'HistoryPanel',
+  components: { AppIcon },
   props: {
     isOpen: { type: Boolean, default: false },
     entries: { type: Array, required: true },

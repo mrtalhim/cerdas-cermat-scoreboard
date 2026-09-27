@@ -80,6 +80,30 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/*
+ * A scoreboard gets poked at with a thumb for hours. Without this, every slightly-long
+ * tap-and-drag across the board starts a text selection and leaves a blue smear sitting
+ * over the scores. Selection is therefore off by default and switched back on only
+ * where text is genuinely meant to be read or edited.
+ */
+input,
+textarea,
+.selectable {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Number fields are steppers, not prose: a drag across one is always a mis-tap. They
+   still get corrected easily because focusing one selects the whole value. */
+input[type='number'] {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Shared transitions. Global on purpose: the score grid renders child components, and

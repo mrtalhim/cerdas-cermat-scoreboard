@@ -8,7 +8,8 @@
       title="Urungkan (Ctrl+Z)"
       class="btn btn-pill shadow-lg bg-cc-control text-cc-control-ink"
     >
-      &#8617; Urungkan
+      <AppIcon name="undo" />
+      Urungkan
     </button>
     <button
       v-if="!isCountingDown"
@@ -16,21 +17,26 @@
       title="Mulai pewaktu"
       class="btn btn-pill shadow-lg bg-cc-surface-2 text-cc-surface-ink"
     >
-      &#9201; Mulai
+      <AppIcon name="timer" />
+      Mulai
     </button>
     <button
       @click="$emit('close')"
       title="Keluar mode presentasi (Esc)"
       class="btn btn-pill shadow-lg bg-cc-control text-cc-control-ink"
     >
-      &#10005; Keluar
+      <AppIcon name="x" />
+      Keluar
     </button>
   </div>
 </template>
 
 <script>
+import AppIcon from './AppIcon.vue'
+
 export default {
   name: 'MiniControls',
+  components: { AppIcon },
   props: {
     canUndo: { type: Boolean, default: false },
     isCountingDown: { type: Boolean, default: false }

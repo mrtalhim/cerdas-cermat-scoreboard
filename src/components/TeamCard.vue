@@ -12,7 +12,7 @@
         v-model="name"
         placeholder="Nama Tim"
         aria-label="Nama tim"
-        class="text-base portrait:text-lg sm:text-xl lg:text-2xl text-center font-bold p-2 w-full min-w-0 border rounded-lg uppercase transition-colors duration-100 bg-transparent text-current placeholder:opacity-60"
+        class="text-lg sm:text-2xl text-center font-bold p-2 w-full min-w-0 border rounded-lg uppercase transition-colors duration-100 bg-transparent text-current placeholder:opacity-60"
       />
       <button
         v-if="!isPresenting"
@@ -20,7 +20,7 @@
         @click="$emit('remove', team.id)"
         aria-label="Hapus tim"
       >
-        &#10006;
+        <AppIcon name="x" />
       </button>
     </div>
 
@@ -29,11 +29,11 @@
       <transition name="bounce" mode="out-in">
         <div
           :key="team.score"
-          class="font-bold tabular-nums leading-none subpixel-antialiased flex-1 min-w-0 flex items-center justify-center whitespace-nowrap overflow-hidden text-ellipsis py-2 min-h-[4.5rem] text-cc-score"
+          class="font-bold tabular-nums leading-none subpixel-antialiased flex-1 min-w-0 flex items-center justify-center gap-1.5 whitespace-nowrap truncate py-2 min-h-[4.5rem] text-cc-score"
           aria-live="polite"
         >
-          <span v-if="isLeader" aria-hidden="true">&#9813;&nbsp;</span
-          >{{ Math.round(team.displayScore ?? team.score) }}
+          <AppIcon v-if="isLeader" name="crown" size="lg" />
+          {{ Math.round(team.displayScore ?? team.score) }}
         </div>
       </transition>
 
@@ -67,9 +67,11 @@ import {
   buttonText,
   isButtonVisible
 } from '../lib/scoreButtons'
+import AppIcon from './AppIcon.vue'
 
 export default {
   name: 'TeamCard',
+  components: { AppIcon },
   props: {
     team: { type: Object, required: true },
     scoreButtons: { type: Array, required: true },
