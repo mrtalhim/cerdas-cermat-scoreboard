@@ -2,21 +2,15 @@
   <div
     class="flex flex-row flex-wrap gap-1.5 portrait:gap-1.5 sm:gap-2 items-center justify-center m-1 sm:m-2 w-full max-w-4xl px-1"
   >
-    <button
-      @click="$emit('open-settings')"
-      class="bg-cc-control text-cc-control-ink text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]"
-    >
+    <button @click="$emit('open-settings')" class="btn bg-cc-control text-cc-control-ink">
       Pengaturan
     </button>
-    <button
-      @click="$emit('add-team')"
-      class="bg-cc-accent text-cc-accent-ink text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg transition-all duration-100 hover:scale-105 active:scale-105 touch-manipulation portrait:min-h-[2.75rem]"
-    >
+    <button @click="$emit('add-team')" class="btn bg-cc-accent text-cc-accent-ink font-bold">
       Tambah Tim
     </button>
     <button
       @click="$emit('open-history')"
-      class="bg-cc-control text-cc-control-ink text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg relative touch-manipulation portrait:min-h-[2.75rem]"
+      class="btn bg-cc-control text-cc-control-ink relative"
       aria-label="Buka riwayat skor"
     >
       Riwayat
@@ -31,7 +25,7 @@
       @click="$emit('undo')"
       :disabled="!canUndo"
       title="Urungkan perubahan terakhir (Ctrl+Z)"
-      class="bg-cc-control text-cc-control-ink text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation portrait:min-h-[2.75rem]"
+      class="btn bg-cc-control text-cc-control-ink"
     >
       Urungkan
     </button>
@@ -39,7 +33,7 @@
       @click="$emit('redo')"
       :disabled="!canRedo"
       title="Ulangi (Ctrl+Shift+Z)"
-      class="bg-cc-control text-cc-control-ink text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation portrait:min-h-[2.75rem]"
+      class="btn bg-cc-control text-cc-control-ink"
     >
       Ulangi
     </button>
@@ -47,21 +41,21 @@
       @click="$emit('celebrate')"
       :disabled="!hasTeams"
       title="Rayakan tim yang memimpin"
-      class="bg-cc-leader text-cc-leader-ink font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-100 hover:scale-105 touch-manipulation portrait:min-h-[2.75rem]"
+      class="btn bg-cc-leader text-cc-leader-ink font-bold"
     >
       &#127881; Pemenang
     </button>
     <button
       @click="$emit('present')"
       title="Mode presentasi: sembunyikan toolbar (F)"
-      class="bg-cc-control text-cc-control-ink text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]"
+      class="btn bg-cc-control text-cc-control-ink"
     >
       &#x26F6; Presentasi
     </button>
     <button
       @click="$emit('toggle-mute')"
       :title="isMuted ? 'Nyalakan suara' : 'Bisukan suara'"
-      class="bg-cc-control text-cc-control-ink text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]"
+      class="btn bg-cc-control text-cc-control-ink"
     >
       {{ isMuted ? '&#128263; Bisukan' : '&#128266; Suara' }}
     </button>
@@ -93,10 +87,7 @@
         @input="$emit('update:seconds', Number($event.target.value))"
       />
       <span aria-hidden="true">d</span>
-      <button
-        @click="$emit('start-countdown')"
-        class="bg-cc-surface-2 text-cc-surface-ink text-sm sm:text-base px-3 sm:px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem]"
-      >
+      <button @click="$emit('start-countdown')" class="btn bg-cc-surface-2 text-cc-surface-ink">
         Mulai
       </button>
     </div>

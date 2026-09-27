@@ -6,7 +6,7 @@
       @click="$emit('undo')"
       :disabled="!canUndo"
       title="Urungkan (Ctrl+Z)"
-      class="bg-cc-control text-cc-control-ink text-sm px-3 py-2 rounded-full shadow-lg disabled:opacity-40 touch-manipulation min-h-[2.75rem]"
+      class="btn btn-pill shadow-lg bg-cc-control text-cc-control-ink"
     >
       &#8617; Urungkan
     </button>
@@ -14,14 +14,14 @@
       v-if="!isCountingDown"
       @click="$emit('start-countdown')"
       title="Mulai pewaktu"
-      class="bg-cc-surface-2 text-cc-surface-ink text-sm px-3 py-2 rounded-full shadow-lg touch-manipulation min-h-[2.75rem]"
+      class="btn btn-pill shadow-lg bg-cc-surface-2 text-cc-surface-ink"
     >
       &#9201; Mulai
     </button>
     <button
       @click="$emit('close')"
       title="Keluar mode presentasi (Esc)"
-      class="bg-cc-control text-cc-control-ink text-sm px-3 py-2 rounded-full shadow-lg touch-manipulation min-h-[2.75rem]"
+      class="btn btn-pill shadow-lg bg-cc-control text-cc-control-ink"
     >
       &#10005; Keluar
     </button>

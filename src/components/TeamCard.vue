@@ -2,7 +2,7 @@
   <div
     :data-team-id="team.id"
     :class="[
-      'team-card flex flex-col p-3 sm:p-4 gap-2 rounded-lg shadow transition-all duration-300 min-h-[9rem] portrait:min-h-[12rem] sm:min-h-[12rem] min-w-0',
+      'team-card flex flex-col p-3 sm:p-4 gap-2 rounded-lg shadow transition-[background-color,box-shadow,transform] duration-300 min-h-[9rem] portrait:min-h-[12rem] sm:min-h-[12rem] min-w-0',
       cardClass,
       isLeader ? 'ring-4 ring-cc-leader' : ''
     ]"
@@ -12,11 +12,11 @@
         v-model="name"
         placeholder="Nama Tim"
         aria-label="Nama tim"
-        class="text-base portrait:text-lg sm:text-xl lg:text-2xl text-center font-bold p-2 w-full min-w-0 border rounded-lg uppercase transition-all duration-100 bg-transparent text-current placeholder:opacity-60"
+        class="text-base portrait:text-lg sm:text-xl lg:text-2xl text-center font-bold p-2 w-full min-w-0 border rounded-lg uppercase transition-colors duration-100 bg-transparent text-current placeholder:opacity-60"
       />
       <button
         v-if="!isPresenting"
-        class="bg-cc-danger text-cc-danger-ink px-3 sm:px-4 rounded-lg shrink-0 touch-manipulation portrait:min-h-[2.75rem] portrait:min-w-[2.75rem] transition-all duration-100 hover:scale-105"
+        class="btn bg-cc-danger text-cc-danger-ink shrink-0 portrait:min-w-[2.75rem]"
         @click="$emit('remove', team.id)"
         aria-label="Hapus tim"
       >
@@ -42,7 +42,7 @@
           v-for="button in visibleButtons"
           :key="button.id"
           :class="[
-            'flex-1 basis-[4rem] min-w-[4rem] text-base font-bold px-2 py-1 min-h-[2.75rem] rounded-lg transition-all duration-100 hover:scale-105 touch-manipulation',
+            'btn btn-block basis-[4rem] min-w-[4rem] font-bold',
             buttonSwatch(button).bg,
             buttonInkClass(button)
           ]"

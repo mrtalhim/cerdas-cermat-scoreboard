@@ -13,20 +13,20 @@
       <button
         v-if="!isPaused"
         @click="$emit('pause')"
-        class="bg-cc-leader text-cc-leader-ink font-bold px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem] portrait:px-6"
+        class="btn bg-cc-leader text-cc-leader-ink font-bold portrait:px-6"
       >
         Jeda
       </button>
       <button
         v-else
         @click="$emit('resume')"
-        class="bg-cc-accent text-cc-accent-ink px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem] portrait:px-6"
+        class="btn bg-cc-accent text-cc-accent-ink font-bold portrait:px-6"
       >
         Lanjut
       </button>
       <button
         @click="$emit('reset')"
-        class="bg-cc-danger text-cc-danger-ink px-4 py-2 rounded-lg touch-manipulation portrait:min-h-[2.75rem] portrait:px-6"
+        class="btn bg-cc-danger text-cc-danger-ink font-bold portrait:px-6"
       >
         Ulang
       </button>

@@ -8,7 +8,7 @@
         <h2 class="text-2xl font-bold">Riwayat</h2>
         <button
           @click="$emit('close')"
-          class="bg-cc-control text-cc-control-ink px-3 py-1 rounded-lg"
+          class="btn bg-cc-control text-cc-control-ink"
           aria-label="Tutup riwayat"
         >
           &#10006;
@@ -18,21 +18,21 @@
         <button
           @click="$emit('undo')"
           :disabled="!canUndo"
-          class="flex-1 bg-cc-control text-cc-control-ink px-2 py-1 rounded-lg disabled:opacity-40"
+          class="btn btn-block bg-cc-control text-cc-control-ink"
         >
           Urutkan
         </button>
         <button
           @click="$emit('redo')"
           :disabled="!canRedo"
-          class="flex-1 bg-cc-control text-cc-control-ink px-2 py-1 rounded-lg disabled:opacity-40"
+          class="btn btn-block bg-cc-control text-cc-control-ink"
         >
           Ulangi
         </button>
         <button
           @click="$emit('clear')"
           :disabled="!hasEntries"
-          class="flex-1 bg-cc-danger text-cc-danger-ink px-2 py-1 rounded-lg disabled:opacity-40"
+          class="btn btn-block bg-cc-danger text-cc-danger-ink"
         >
           Hapus
         </button>

@@ -8,7 +8,7 @@
         <h2 class="text-3xl sm:text-5xl font-bold mb-4 w-full">Pengaturan</h2>
         <button
           @click="$emit('close')"
-          class="absolute bg-cc-control text-cc-control-ink px-3 py-2 rounded-lg"
+          class="btn absolute bg-cc-control text-cc-control-ink"
           aria-label="Tutup pengaturan"
         >
           &#10006;
@@ -21,7 +21,7 @@
           :key="tab"
           @click="activeTab = tab"
           :class="[
-            'px-3 py-1 rounded-lg touch-manipulation',
+            'btn flex-1',
             activeTab === tab
               ? 'bg-cc-control text-cc-control-ink font-bold'
               : 'bg-cc-surface-2 text-cc-surface-ink'
@@ -79,14 +79,14 @@
               <button
                 @click="patchButton(index, { textColor: '' })"
                 :disabled="!button.textColor"
-                class="px-2 py-1 rounded-lg bg-cc-control text-cc-control-ink text-xs disabled:opacity-40 touch-manipulation min-h-[2rem] min-w-[2rem] shrink-0"
+                class="btn min-w-[2.75rem] shrink-0 bg-cc-control text-cc-control-ink"
                 title="Biarkan otomatis (pilih hitam atau putih yang paling kontras)"
               >
                 &#8635;
               </button>
               <button
                 :class="[
-                  'flex-1 min-w-0 truncate text-sm font-bold px-2 py-1 rounded-lg',
+                  'btn btn-block font-bold min-w-0 truncate',
                   buttonSwatch(button).bg,
                   buttonInkClass(button)
                 ]"
@@ -98,7 +98,7 @@
               <button
                 @click="$emit('move-button', { index, delta: -1 })"
                 :disabled="index === 0"
-                class="px-2 py-1 rounded-lg bg-cc-control text-cc-control-ink text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem] shrink-0"
+                class="btn min-w-[2.75rem] shrink-0 bg-cc-control text-cc-control-ink"
                 aria-label="Geser tombol ke atas"
               >
                 &#9650;
@@ -106,7 +106,7 @@
               <button
                 @click="$emit('move-button', { index, delta: 1 })"
                 :disabled="index === scoreButtons.length - 1"
-                class="px-2 py-1 rounded-lg bg-cc-control text-cc-control-ink text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem] shrink-0"
+                class="btn min-w-[2.75rem] shrink-0 bg-cc-control text-cc-control-ink"
                 aria-label="Geser tombol ke bawah"
               >
                 &#9660;
@@ -114,7 +114,7 @@
               <button
                 @click="$emit('remove-button', index)"
                 :disabled="scoreButtons.length <= 1"
-                class="px-2 py-1 rounded-lg bg-cc-danger text-cc-danger-ink text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem] shrink-0"
+                class="btn min-w-[2.75rem] shrink-0 bg-cc-danger text-cc-danger-ink"
                 aria-label="Hapus tombol skor"
               >
                 &#10006;
@@ -126,13 +126,13 @@
           <button
             @click="$emit('add-button')"
             :disabled="scoreButtons.length >= maxButtons"
-            class="flex-1 bg-cc-accent text-cc-accent-ink px-3 py-2 rounded-lg text-sm disabled:opacity-40 touch-manipulation"
+            class="btn btn-block bg-cc-accent text-cc-accent-ink"
           >
             + Tambah Tombol
           </button>
           <button
             @click="$emit('reset-buttons')"
-            class="flex-1 bg-cc-control text-cc-control-ink px-3 py-2 rounded-lg text-sm touch-manipulation"
+            class="btn btn-block bg-cc-control text-cc-control-ink"
           >
             Setel Ulang
           </button>
@@ -148,7 +148,7 @@
             :key="choice.value"
             @click="$emit('update-theme', choice.value)"
             :class="[
-              'flex-1 px-3 py-2 rounded-lg text-sm touch-manipulation',
+              'btn btn-block',
               appearance.theme === choice.value
                 ? 'bg-cc-control text-cc-control-ink font-bold'
                 : 'bg-cc-surface-2 text-cc-surface-ink'
@@ -176,7 +176,7 @@
             <button
               @click="$emit('clear-color', field.key)"
               :disabled="!appearance.overrides?.[field.key]"
-              class="px-2 py-1 rounded-lg bg-cc-control text-cc-control-ink text-xs disabled:opacity-40 touch-manipulation min-h-[2rem]"
+              class="btn btn-xs bg-cc-control text-cc-control-ink"
               title="Kembalikan ke bawaan tema"
             >
               &#8635;
@@ -194,13 +194,13 @@
           :min="scoreScaleRange.min"
           :max="scoreScaleRange.max"
           :step="scoreScaleRange.step"
-          class="w-full touch-manipulation"
+          class="w-full touch-manipulation accent-cc-accent"
           @input="$emit('update-score-scale', Number($event.target.value))"
         />
 
         <button
           @click="$emit('reset-appearance')"
-          class="bg-cc-control text-cc-control-ink px-3 py-2 rounded-lg text-sm touch-manipulation"
+          class="btn btn-block bg-cc-control text-cc-control-ink"
         >
           Setel Ulang Tampilan
         </button>
@@ -243,7 +243,7 @@
           />
           <label
             for="background-file"
-            class="block cursor-pointer bg-cc-accent text-cc-accent-ink text-sm px-3 py-2 rounded-lg touch-manipulation"
+            class="btn cursor-pointer bg-cc-accent text-cc-accent-ink font-bold"
           >
             {{ isUploading ? 'Memproses…' : 'Pilih Gambar' }}
           </label>
@@ -267,7 +267,7 @@
           <div class="flex gap-2">
             <button
               @click="$emit('remove-background')"
-              class="flex-1 bg-cc-danger text-cc-danger-ink px-3 py-2 rounded-lg text-sm touch-manipulation"
+              class="btn btn-block bg-cc-danger text-cc-danger-ink"
             >
               Hapus Latar
             </button>
@@ -283,7 +283,7 @@
               :key="choice.value"
               @click="$emit('update-background-fit', choice.value)"
               :class="[
-                'flex-1 px-3 py-2 rounded-lg text-sm touch-manipulation',
+                'btn btn-block',
                 appearance.backgroundFit === choice.value
                   ? 'bg-cc-control text-cc-control-ink font-bold'
                   : 'bg-cc-surface-2 text-cc-surface-ink'
@@ -303,7 +303,7 @@
             :min="dimRange.min"
             :max="dimRange.max"
             :step="dimRange.step"
-            class="w-full touch-manipulation"
+            class="w-full touch-manipulation accent-cc-accent"
             @input="$emit('update-background-dim', Number($event.target.value))"
           />
         </template>
@@ -363,7 +363,7 @@
 
         <button
           @click="$emit('reset-branding')"
-          class="bg-cc-control text-cc-control-ink px-3 py-2 rounded-lg text-sm touch-manipulation"
+          class="btn btn-block bg-cc-control text-cc-control-ink"
         >
           Setel Ulang Identitas
         </button>
@@ -371,15 +371,12 @@
 
       <!-- ---------- Umum ---------- -->
       <div v-show="activeTab === 'Umum'" class="flex flex-col gap-2 text-left">
-        <button
-          @click="$emit('clear-teams')"
-          class="bg-cc-danger text-cc-danger-ink text-center p-2 rounded-lg"
-        >
+        <button @click="$emit('clear-teams')" class="btn btn-block bg-cc-danger text-cc-danger-ink">
           Hapus Semua Tim
         </button>
         <button
           @click="$emit('test-sound')"
-          class="bg-cc-control text-cc-control-ink text-center p-2 rounded-lg"
+          class="btn btn-block bg-cc-control text-cc-control-ink"
         >
           &#128266; Tes Suara
         </button>

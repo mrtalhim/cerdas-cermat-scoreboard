@@ -3,3 +3,83 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Component classes.
+ *
+ * This block MUST stay below the @tailwind directives above. Layer order follows the
+ * order layers are first declared, so a @layer components block placed in base.css
+ * would be ordered *before* @tailwind base — and Tailwind's preflight (which zeroes
+ * button padding and sets font-size: 100%) would then win over everything in here.
+ */
+@layer components {
+  /*
+   * Every interactive control in the chrome. One definition of the 44px touch target,
+   * the press affordance and the disabled state, replacing ~30 hand-copied copies of
+   * `touch-manipulation min-h-[2.75rem] hover:scale-105 transition-all`.
+   *
+   * Sized to the default; utilities still win over anything set here, so a one-off
+   * override is a normal class attribute.
+   */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    min-height: 2.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color 150ms,
+      color 150ms,
+      border-color 150ms,
+      opacity 150ms,
+      transform 150ms;
+  }
+
+  @media (min-width: 640px) {
+    .btn {
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
+  }
+
+  .btn:not(:disabled):hover,
+  .btn:not(:disabled):active {
+    transform: scale(1.05);
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-sm {
+    min-height: 2.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .btn-xs {
+    min-height: 2rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .btn-pill {
+    border-radius: 9999px;
+  }
+
+  .btn-block {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+}
