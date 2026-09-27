@@ -39,6 +39,15 @@ export function colorClasses(color) {
   }
 }
 
+/**
+ * Button -> swatch. Components must use this rather than colorClasses(button): passing
+ * the object makes colorClasses miss the palette lookup and silently return no `bg`
+ * class, which renders the button invisible.
+ */
+export function buttonSwatch(button) {
+  return colorClasses(button?.color)
+}
+
 export function buttonStyle(color) {
   const { custom } = colorClasses(color)
   return custom ? { backgroundColor: custom } : null

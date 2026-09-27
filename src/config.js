@@ -66,7 +66,7 @@ export const SCORE_BUTTON_COLORS = {
   red: { label: 'Merah', bg: 'bg-red-500', ink: 'text-white', swatch: '#ef4444' },
   amber: { label: 'Amber', bg: 'bg-amber-500', ink: 'text-black', swatch: '#f59e0b' },
   indigo: { label: 'Indigo', bg: 'bg-indigo-500', ink: 'text-white', swatch: '#6366f1' },
-  emerald: { label: 'Emerald', bg: 'bg-emerald-500', ink: 'text-white', swatch: '#10b981' },
+  emerald: { label: 'Emerald', bg: 'bg-emerald-500', ink: 'text-black', swatch: '#10b981' },
   purple: { label: 'Ungu', bg: 'bg-purple-500', ink: 'text-white', swatch: '#a855f7' },
   pink: { label: 'Merah Muda', bg: 'bg-pink-500', ink: 'text-white', swatch: '#ec4899' },
   slate: { label: 'Slate', bg: 'bg-slate-500', ink: 'text-white', swatch: '#64748b' },

@@ -42,57 +42,72 @@
           <li
             v-for="(button, index) in scoreButtons"
             :key="button.id"
-            class="flex flex-row items-center gap-1.5"
+            class="flex flex-col gap-1.5 p-2 rounded-lg bg-white dark:bg-slate-700"
           >
-            <input
-              type="color"
-              :value="swatch(button).swatch"
-              :title="`Warna tombol ${index + 1} (${swatch(button).label})`"
-              :aria-label="`Warna tombol ${index + 1}`"
-              class="w-8 h-8 shrink-0 rounded border cursor-pointer bg-white"
-              @input="patchButton(index, { color: pickColor($event.target.value) })"
-            />
-            <input
-              :value="button.value"
-              type="number"
-              :aria-label="`Nilai tombol skor ${index + 1}`"
-              class="w-20 sm:w-24 text-lg sm:text-xl text-center p-2 min-w-0 rounded-lg border"
-              placeholder="Nilai"
-              @input="patchButton(index, { value: toNumber($event.target.value) })"
-            />
-            <input
-              :value="button.label"
-              type="text"
-              maxlength="12"
-              :aria-label="`Label tombol skor ${index + 1}`"
-              class="w-full text-base p-2 min-w-0 rounded-lg border"
-              placeholder="Label (opsional)"
-              @input="patchButton(index, { label: $event.target.value })"
-            />
-            <button
-              @click="$emit('move-button', { index, delta: -1 })"
-              :disabled="index === 0"
-              class="px-2 py-1 rounded-lg bg-gray-300 dark:bg-slate-600 text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem]"
-              aria-label="Geser tombol ke atas"
-            >
-              &#9650;
-            </button>
-            <button
-              @click="$emit('move-button', { index, delta: 1 })"
-              :disabled="index === scoreButtons.length - 1"
-              class="px-2 py-1 rounded-lg bg-gray-300 dark:bg-slate-600 text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem]"
-              aria-label="Geser tombol ke bawah"
-            >
-              &#9660;
-            </button>
-            <button
-              @click="$emit('remove-button', index)"
-              :disabled="scoreButtons.length <= 1"
-              class="px-2 py-1 rounded-lg bg-red-600 text-white text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem]"
-              aria-label="Hapus tombol skor"
-            >
-              &#10006;
-            </button>
+            <div class="flex flex-row items-center gap-1.5">
+              <input
+                type="color"
+                :value="buttonSwatch(button).swatch"
+                :title="`Warna tombol ${index + 1} (${buttonSwatch(button).label})`"
+                :aria-label="`Warna tombol ${index + 1}`"
+                class="w-9 h-9 shrink-0 rounded border cursor-pointer bg-white"
+                @input="patchButton(index, { color: pickColor($event.target.value) })"
+              />
+              <input
+                :value="button.value"
+                type="number"
+                :aria-label="`Nilai tombol skor ${index + 1}`"
+                class="w-20 shrink-0 text-lg sm:text-xl font-bold text-center p-2 min-w-0 rounded-lg border"
+                placeholder="Nilai"
+                @input="patchButton(index, { value: toNumber($event.target.value) })"
+              />
+              <input
+                :value="button.label"
+                type="text"
+                maxlength="12"
+                :aria-label="`Label tombol skor ${index + 1}`"
+                class="flex-1 text-base p-2 min-w-0 rounded-lg border"
+                placeholder="Label (opsional)"
+                @input="patchButton(index, { label: $event.target.value })"
+              />
+            </div>
+            <div class="flex flex-row items-center gap-1.5">
+              <button
+                :class="[
+                  'flex-1 min-w-0 truncate text-sm font-bold px-2 py-1 rounded-lg',
+                  buttonSwatch(button).bg,
+                  buttonSwatch(button).ink
+                ]"
+                :style="buttonStyle(button.color)"
+                disabled
+              >
+                {{ previewText(button) }}
+              </button>
+              <button
+                @click="$emit('move-button', { index, delta: -1 })"
+                :disabled="index === 0"
+                class="px-2 py-1 rounded-lg bg-gray-300 dark:bg-slate-600 text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem] shrink-0"
+                aria-label="Geser tombol ke atas"
+              >
+                &#9650;
+              </button>
+              <button
+                @click="$emit('move-button', { index, delta: 1 })"
+                :disabled="index === scoreButtons.length - 1"
+                class="px-2 py-1 rounded-lg bg-gray-300 dark:bg-slate-600 text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem] shrink-0"
+                aria-label="Geser tombol ke bawah"
+              >
+                &#9660;
+              </button>
+              <button
+                @click="$emit('remove-button', index)"
+                :disabled="scoreButtons.length <= 1"
+                class="px-2 py-1 rounded-lg bg-red-600 text-white text-sm disabled:opacity-40 touch-manipulation min-h-[2.25rem] min-w-[2.25rem] shrink-0"
+                aria-label="Hapus tombol skor"
+              >
+                &#10006;
+              </button>
+            </div>
           </li>
         </ul>
         <div class="flex flex-wrap gap-2">
@@ -371,7 +386,13 @@
 <script>
 import { BACKGROUND_DIM_RANGE, MAX_SCORE_BUTTONS, SCORE_SCALE_RANGE } from '../config'
 import { formatBytes } from '../lib/image'
-import { colorClasses, matchColorKey } from '../lib/scoreButtons'
+import {
+  buttonStyle,
+  buttonSwatch,
+  buttonText,
+  isButtonVisible,
+  matchColorKey
+} from '../lib/scoreButtons'
 
 const TABS = ['Skor', 'Tampilan', 'Latar', 'Identitas', 'Umum']
 
@@ -441,8 +462,13 @@ export default {
     }
   },
   methods: {
-    swatch(button) {
-      return colorClasses(button.color)
+    buttonStyle,
+    buttonSwatch,
+    buttonText,
+    // The live preview doubles as the "value 0 hides this" signal, and makes an
+    // invisible-button regression obvious without having to open a team card.
+    previewText(button) {
+      return isButtonVisible(button) ? buttonText(button) : ' disembunyikan'
     },
     pickFile(event) {
       const [file] = event.target.files ?? []
