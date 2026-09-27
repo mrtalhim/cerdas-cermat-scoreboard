@@ -1,5 +1,9 @@
 <template>
-  <div :class="['flex flex-col items-center mx-auto text-center p-2 portrait:p-2 sm:p-4 gap-1.5 portrait:gap-1.5 sm:gap-2 min-h-screen min-h-dvh relative w-full max-w-7xl overflow-x-clip pb-[max(0.5rem,env(safe-area-inset-bottom))]', backgroundColorClass]">
+  <!-- Full-bleed background layer so flashes fill the whole screen, not just the content column -->
+  <div :class="['min-h-screen min-h-dvh w-full relative overflow-x-clip', backgroundColorClass]">
+    <div
+      class="flex flex-col items-center mx-auto text-center p-2 portrait:p-2 sm:p-4 gap-1.5 portrait:gap-1.5 sm:gap-2 w-full max-w-7xl min-h-screen min-h-dvh pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+    >
     <input
       v-if="!isPresenting"
       v-model="title"
@@ -309,8 +313,7 @@
             <div
               :key="team.score"
               :class="[
-                'text-black font-bold tabular-nums leading-none subpixel-antialiased flex-1 min-w-0 flex items-center justify-center whitespace-nowrap overflow-hidden text-ellipsis portrait:py-2 portrait:min-h-[4.5rem]',
-                scoreClassFor(team)
+                'text-black font-bold tabular-nums leading-none subpixel-antialiased flex-1 min-w-0 flex items-center justify-center whitespace-nowrap overflow-hidden text-ellipsis portrait:py-2 portrait:min-h-[4.5rem] text-[clamp(1.25rem,10cqw,6rem)] portrait:text-[clamp(2rem,14cqw,5rem)]'
               ]"
               aria-live="polite"
             >
@@ -346,6 +349,7 @@
         </div>
       </div>
     </transition-group>
+    </div>
   </div>
 </template>
 
@@ -398,8 +402,7 @@ export default {
       backgroundColorClass: '',
       alarm: null,
       tick: null,
-      correct: null,
-      wrong: null
+      correct: null
     }
   },
   computed: {
@@ -553,8 +556,8 @@ export default {
       const nextScore = prevScore + amount
       team.score = nextScore
       team.lastChange = amount
-      // original v1 behavior: correct.wav on +, wrong.wav on −
-      this.safePlay(amount >= 0 ? this.correct : this.wrong)
+      // v1 behavior: correct.wav on +, buzzer on − (wrong.wav was never wired up)
+      this.safePlay(amount >= 0 ? this.correct : this.alarm)
       this.tweenScore(team, nextScore)
       this.pushHistory({
         type: 'score',
@@ -764,22 +767,6 @@ export default {
       })
     },
     // ---------- anime.js motion ----------
-    scoreClassFor(team) {
-      // Shrink the number as it grows so long scores never get clipped.
-      const value = Math.round(team.displayScore ?? team.score ?? 0)
-      const digits =
-        String(Math.abs(value)).length + (value < 0 ? 1 : 0) + (this.leaders.includes(team.id) ? 2 : 0)
-      const ladder = [
-        'text-xl portrait:text-2xl sm:text-3xl lg:text-4xl',
-        'text-2xl portrait:text-3xl sm:text-4xl lg:text-5xl',
-        'text-3xl portrait:text-4xl sm:text-5xl lg:text-6xl',
-        'text-4xl portrait:text-5xl sm:text-6xl lg:text-7xl xl:text-8xl'
-      ]
-      let level = this.teams.length > 6 ? 2 : 3
-      if (digits >= 5) level -= 1
-      if (digits >= 7) level -= 1
-      return ladder[Math.max(0, level)]
-    },
     tweenScore(team, to) {
       scoreAnims.get(team.id)?.cancel()
       scoreAnims.delete(team.id)
@@ -826,16 +813,13 @@ export default {
         this.alarm = new Audio(`${base}buzz.wav`)
         this.tick = new Audio(`${base}tick.wav`)
         this.correct = new Audio(`${base}correct.wav`)
-        this.wrong = new Audio(`${base}wrong.wav`)
         this.alarm.preload = 'auto'
         this.tick.preload = 'auto'
         this.correct.preload = 'auto'
-        this.wrong.preload = 'auto'
       } catch {
         this.alarm = null
         this.tick = null
         this.correct = null
-        this.wrong = null
       }
     },
     testSound() {
@@ -949,6 +933,11 @@ export default {
 </script>
 
 <style scoped>
+/* Card is a size container so the score font (cqw units) scales with card width */
+.team-card {
+  container-type: inline-size;
+}
+
 .fade-enter-active {
   transition: opacity 0.5s ease;
 }
